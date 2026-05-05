@@ -20,14 +20,10 @@ export default function TaskList() {
       .finally(() => setLoading(false));
   }, []);
 
-  // BUG 1: 필터 조건이 반전되어 있음
-  // completed를 선택하면 completed가 아닌 것만 표시
+  // 수정: 필터 조건을 올바르게 변경
   const filteredTasks = tasks.filter((task) => {
     if (filter === "all") return true;
-    if (filter === "completed") return task.status !== "completed";
-    if (filter === "in_progress") return task.status !== "in_progress";
-    if (filter === "pending") return task.status !== "pending";
-    return true;
+    return task.status === filter;
   });
 
   const sortedTasks = (() => {
