@@ -9,5 +9,40 @@
       "Bash(npx vitest*)",
       "Bash(npx prisma*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CC_TOOL_ARGS\" | grep -q '\\.env'; then echo 'BLOCK: .env 파일은 직접 편집할 수 없습니다. 환경 변수 변경은 담당자에게 요청하세요.'; exit 1; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CC_EDIT_FILE_PATH\" | grep -qE '\\.(ts|tsx|js|jsx)$'; then npx prettier --write \"$CC_EDIT_FILE_PATH\" 2>/dev/null; fi"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/session-context.sh"
+          }
+        ]
+      }
+    ]
   }
 }
