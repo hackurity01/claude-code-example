@@ -9,7 +9,6 @@ export async function GET() {
   return NextResponse.json(tasks);
 }
 
-// BUG 3: assigneeId를 data에 포함하지 않음
 export async function POST(request: Request) {
   const body = await request.json();
   const task = await prisma.task.create({
@@ -18,8 +17,8 @@ export async function POST(request: Request) {
       description: body.description || null,
       status: body.status || "pending",
       priority: body.priority || "medium",
+      assigneeId: body.assigneeId || null,
       dueDate: body.dueDate ? new Date(body.dueDate) : null,
-      // assigneeId: body.assigneeId || null,  // 누락!
     },
     include: { assignee: true },
   });

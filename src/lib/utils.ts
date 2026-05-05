@@ -2,16 +2,15 @@ import { Task, Priority } from "@/types";
 
 /**
  * 업무를 날짜순으로 정렬한다.
- * BUG: 문자열 비교를 사용하여 ISO 형식이 아닌 날짜에서 오동작한다.
- * 시드 데이터 중 "2026-4-30" (0 없는 형식)이 이 버그를 트리거한다.
  */
 export function sortByDate(
   tasks: Task[],
   order: "asc" | "desc" = "desc"
 ): Task[] {
   return [...tasks].sort((a, b) => {
-    if (order === "desc") return a.createdAt > b.createdAt ? -1 : 1;
-    return a.createdAt < b.createdAt ? -1 : 1;
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return order === "desc" ? dateB - dateA : dateA - dateB;
   });
 }
 
