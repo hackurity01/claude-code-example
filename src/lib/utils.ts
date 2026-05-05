@@ -52,3 +52,7 @@ export function getPriorityLabel(priority: string): string {
   };
   return labels[priority] || priority;
 }
+
+export function changePriority(task: Task, newPriority: Priority): Task {
+  return { ...task, priority: newPriority };
+}
