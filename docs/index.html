@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 강의 슬라이드 목차</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 60px 20px;
+}
+.container {
+    max-width: 880px;
+    margin: 0 auto;
+}
+header {
+    margin-bottom: 48px;
+    text-align: center;
+}
+h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+}
+.subtitle {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    font-weight: 400;
+}
+ul.toc {
+    list-style: none;
+    display: grid;
+    gap: 12px;
+}
+.toc a {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 12px;
+    color: #e2e8f0;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.toc a:hover {
+    background: rgba(51, 65, 85, 0.8);
+    border-color: rgba(96, 165, 250, 0.5);
+    transform: translateX(4px);
+}
+.num {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #60a5fa;
+    min-width: 48px;
+}
+.title {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+footer {
+    margin-top: 56px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Claude Code 강의</h1>
+        <p class="subtitle">슬라이드 목차</p>
+    </header>
+    <ul class="toc">
+        <li><a href="section-01-overview.html"><span class="num">01</span><span class="title">Claude Code Overview</span></a></li>
+        <li><a href="section-02-basics.html"><span class="num">02</span><span class="title">Claude Code 기초 활용</span></a></li>
+        <li><a href="section-03-claude-md.html"><span class="num">03</span><span class="title">CLAUDE.md, Rules</span></a></li>
+        <li><a href="section-04-commands-mcp-skill.html"><span class="num">04</span><span class="title">Command, MCP, Skill</span></a></li>
+        <li><a href="section-05-hooks.html"><span class="num">05</span><span class="title">Hooks</span></a></li>
+        <li><a href="section-06-plugins.html"><span class="num">06</span><span class="title">Plugin Marketplace</span></a></li>
+        <li><a href="section-07-agents.html"><span class="num">07</span><span class="title">커스텀 에이전트 &amp; 오케스트레이션</span></a></li>
+        <li><a href="section-08-harness.html"><span class="num">08</span><span class="title">하네스 엔지니어링</span></a></li>
+        <li><a href="section-09-spec-driven.html"><span class="num">09</span><span class="title">Spec Driven</span></a></li>
+        <li><a href="section-10-wrapup.html"><span class="num">10</span><span class="title">마무리</span></a></li>
+    </ul>
+    <footer>Claude Code Example</footer>
+</div>
+</body>
+</html>
