@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the slides static site for GitHub Pages from `slide/`.
+"""Build the slides static site for GitHub Pages from `docs/`.
 
 Output goes to `_site/` and is structured as:
 
@@ -16,7 +16,7 @@ from html import escape
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "slide"
+SRC = ROOT / "docs"
 OUT = ROOT / "_site"
 
 LECTURE_TITLE = "Claude Code 기초 및 활용"

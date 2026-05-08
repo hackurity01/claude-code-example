@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'slide/**'
+      - 'docs/**'
       - 'scripts/build-slides.py'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
