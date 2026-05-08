@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 4: Command, MCP, Skill</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS (pre, .code-block, .ascii-diagram) */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.code-block .code-label {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-size: clamp(0.5rem, 0.7vw, 0.65rem);
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Syntax highlighting — all use CSS variables */
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+/* Inline code */
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+tr.row-highlight { background: var(--accent-glow); font-weight: 600; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- Slide 0: Title -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 04</div>
+            <h1>Command, MCP, Skill</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">기초 커맨드를 활용하고, 커스텀 Skill을 작성하며, MCP로 외부 도구를 연결한다</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 1: 기초 커맨드 치트시트 -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>기초 커맨드 -- 치트시트</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>커맨드</th><th>기능</th><th>언제 쓰나</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code class="inline-code">/help</code></td><td>전체 명령어 목록</td><td>뭐가 있는지 모를 때</td></tr>
+                        <tr><td><code class="inline-code">/context</code></td><td>현재 토큰 사용량 확인</td><td>"지금 얼마나 썼지?"</td></tr>
+                        <tr><td><code class="inline-code">/clear</code></td><td>컨텍스트 초기화</td><td>새로운 작업 시작할 때</td></tr>
+                        <tr><td><code class="inline-code">/compact</code></td><td>대화 요약 후 압축</td><td>컨텍스트 꽉 찼을 때</td></tr>
+                        <tr><td><code class="inline-code">/init</code></td><td>CLAUDE.md 자동 생성</td><td>새 프로젝트 시작할 때</td></tr>
+                        <tr><td><code class="inline-code">/permissions</code></td><td>도구 허용/차단 관리</td><td>반복 승인 귀찮을 때</td></tr>
+                        <tr><td><code class="inline-code">/btw</code></td><td>메인 작업을 방해하지 않고 질문</td><td>"이거 왜 이렇게 동작해?"</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-secondary">가장 자주 쓰는 3개: <code class="inline-code">/clear</code>, <code class="inline-code">/compact</code>, <code class="inline-code">/context</code></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 2: /btw 커맨드 -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>/btw -- 메인 작업을 방해하지 않는 질문</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm"># Claude가 코드를 수정하는 중간에:</span>
+
+<span class="fn">/btw</span> 이 함수에서 왜 Date 객체 대신 문자열 비교를 쓴 거야?
+
+<span class="cm"># Claude는 현재 작업을 계속하면서 질문에 답변</span></div>
+            <ul class="bullet-list">
+                <li>메인 작업을 <span class="accent">중단하지 않음</span></li>
+                <li>현재 세션에서 진행 중인 작업에 대해 질문</li>
+                <li>작업 흐름을 깨지 않고 궁금한 점을 바로 확인</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: 커스텀 Skill 개념 -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>커스텀 Skill -- "반복 작업을 재사용 가능하게"</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <ul class="bullet-list">
+                <li>반복하는 작업 패턴을 <span class="accent">재사용 가능한 형태</span>로 등록</li>
+                <li><code class="inline-code">.claude/skills/</code> 디렉토리에 <code class="inline-code">SKILL.md</code> 파일로 정의</li>
+                <li>팀원 모두가 같은 스킬을 공유</li>
+            </ul>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>호출 방식</th><th>예시</th><th>동작</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="bold">수동 호출</span></td><td><code class="inline-code">/review src/api/tasks/route.ts</code></td><td>슬래시 커맨드로 직접 실행</td></tr>
+                        <tr><td><span class="bold">자동 호출</span></td><td>"이 파일 리뷰해줘"</td><td>description 매칭으로 자동 실행</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card card-accent">
+                <p class="small">매번 긴 프롬프트 대신 &rarr; <code class="inline-code">/review src/app/api/tasks/route.ts</code> 한 줄로</p>
+            </div>
+            <p class="small text-secondary">참고: <a href="https://github.com/anthropics/skills" target="_blank" style="color: var(--accent);">Anthropic 공식 스킬 레포지토리</a> (pdf, frontend-design, claude-api, skill-creator 등 17개 공식 스킬)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: SKILL.md 구조 -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>SKILL.md 구조</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small text-secondary">SKILL.md = frontmatter + 자유 형식 본문</p>
+            <div class="code-block"><span class="cm">---</span>
+<span class="prop">name</span>: <span class="str">review</span>
+<span class="prop">description</span>: <span class="str">코드 파일을 리뷰하여 버그, 보안, 성능 문제를 찾는다</span>
+<span class="cm">---</span>
+
+<span class="fn">$ARGUMENTS</span> 파일을 아래 관점으로 리뷰한다.
+
+<span class="cm">## 리뷰 관점</span>
+<span class="num">1.</span> 버그 -- 로직 오류, 엣지 케이스 누락
+<span class="num">2.</span> 보안 -- 인젝션, 인증 누락
+<span class="num">3.</span> 성능 -- 불필요한 연산, N+1 쿼리
+
+<span class="cm">## 출력 형식</span>
+심각도별로 정리: Critical / Warning / Info</div>
+            <ul class="bullet-list">
+                <li><span class="accent">frontmatter</span>: name, description (자동 호출 매칭 기준)</li>
+                <li><span class="accent">본문</span>: Claude에게 주는 지시문 (자유 형식)</li>
+                <li><span class="accent">$ARGUMENTS</span>: 사용자 입력이 치환되는 자리</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: Skill 실행 흐름 -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>Skill 실행 흐름</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram">사용자:  <span class="fn">/review</span> src/app/api/tasks/route.ts
+           |
+           v
+SKILL.md:  <span class="fn">$ARGUMENTS</span> = "src/app/api/tasks/route.ts"
+           |
+           v
+Claude:    1. 해당 파일 읽기
+           2. 리뷰 관점 4가지로 분석
+           3. 심각도별 정리해서 출력
+           |
+           v
+결과:      <span class="prop">Critical</span>: assigneeId가 Prisma create에 누락됨
+           <span class="type">Warning</span>:  에러 응답에 상세 메시지 없음
+           <span class="str">Info</span>:     status 유효값 검증 추가 권장</div>
+            <div class="card card-accent">
+                <p class="small">같은 Skill = 같은 형식의 결과 &rarr; 팀원 누구나 동일한 리뷰를 받음</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: MCP 개념 -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>MCP -- "Claude에 USB 포트를 다는 것"</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <img src="images/section4-7.png" alt="Claude Code MCP 연결 다이어그램 — USB 포트처럼 Chrome DevTools, Fetch(HTTP), PostgreSQL Database를 연결" style="max-height: min(65vh, 520px); width: auto; display: block; margin: 0 auto; border-radius: 8px;">
+            <ul class="bullet-list">
+                <li>Claude Code 혼자서는 브라우저 제어, 외부 서비스 연동 <span class="accent">불가</span></li>
+                <li>MCP = 외부 도구와 Claude를 연결하는 <span class="accent">표준 프로토콜</span></li>
+                <li>USB 포트에 장치를 꽂듯이, 필요한 도구를 연결</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: MCP 설치 -->
+<div class="slide" data-slide="7">
+    <div class="slide-header"><h2>MCP 설치 -- 한 줄이면 끝</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm"># Chrome DevTools 연결 (로컬 stdio)</span>
+<span class="fn">claude</span> mcp add chrome-devtools --scope project npx chrome-devtools-mcp@latest
+
+<span class="cm"># Playwright 브라우저 자동화 (로컬 stdio)</span>
+<span class="fn">claude</span> mcp add playwright --scope user npx @playwright/mcp@latest
+
+<span class="cm"># Notion 연결 (리모트 HTTP)</span>
+<span class="fn">claude</span> mcp add --transport http notion https://mcp.notion.com/mcp</div>
+            <p class="small bold">두 가지 연결 방식:</p>
+            <ul class="bullet-list">
+                <li><code class="inline-code">--scope user</code> + <code class="inline-code">npx</code> = 로컬 stdio 서버 (내 PC에서 실행)</li>
+                <li><code class="inline-code">--transport http</code> + URL = 리모트 HTTP 서버 (클라우드)</li>
+            </ul>
+            <p class="small text-secondary">공식 문서: <a href="https://github.com/nickcopi/chrome-devtools-mcp" target="_blank" style="color: var(--accent);">Chrome DevTools MCP</a> · <a href="https://github.com/microsoft/playwright-mcp" target="_blank" style="color: var(--accent);">Playwright MCP</a> · <a href="https://www.notion.com/help/mcp" target="_blank" style="color: var(--accent);">Notion MCP</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: 역할별 추천 MCP -->
+<div class="slide" data-slide="8">
+    <div class="slide-header"><h2>역할별 추천 MCP</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>역할</th><th>추천 MCP</th><th>용도</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="bold">프론트엔드</span></td><td>Playwright, Chrome DevTools</td><td>UI 테스트, 브라우저 디버깅</td></tr>
+                        <tr><td><span class="bold">백엔드</span></td><td>PostgreSQL</td><td>DB 조회, 스키마 확인</td></tr>
+                        <tr><td><span class="bold">PM</span></td><td>Linear, Notion, Jira</td><td>이슈 관리, 문서 연동</td></tr>
+                        <tr><td><span class="bold">디자이너</span></td><td>Figma</td><td>디자인 시스템 참조</td></tr>
+                        <tr><td><span class="bold">DevOps</span></td><td>Sentry, AWS</td><td>에러 추적, 인프라 관리</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card card-accent">
+                <p class="small">MCP는 <span class="accent">2-3개만</span> 설치 -- 각 MCP가 컨텍스트를 소비합니다</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 9: MCP vs CLI -->
+<div class="slide" data-slide="9">
+    <div class="slide-header"><h2>MCP vs CLI -- 최근 흐름</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th></th><th>MCP</th><th>CLI</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="bold">설치</span></td><td>MCP 서버 설치 필요</td><td>이미 있는 CLI 도구 사용</td></tr>
+                        <tr><td><span class="bold">컨텍스트 비용</span></td><td>도구 목록이 토큰 차지</td><td>없음</td></tr>
+                        <tr><td><span class="bold">장점</span></td><td>구조화된 입출력, 안정적</td><td>가볍고 유연, 도구 무한</td></tr>
+                        <tr><td><span class="bold">적합한 경우</span></td><td>반복적 외부 연동</td><td>일회성 호출, 간단한 작업</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="code-block"><span class="cm"># MCP 방식: Playwright MCP 설치 후</span>
+"이 페이지 스크린샷 찍어줘" &rarr; Claude가 <span class="fn">Playwright</span> 도구 사용
+
+<span class="cm"># CLI 방식: 설치 없이</span>
+"curl로 이 API 호출해줘" &rarr; Claude가 직접 <span class="fn">curl</span> 실행</div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 10: 실습 - Skill 작성 -->
+<div class="slide" data-slide="10">
+    <div class="slide-header"><h2>실습 -- /review Skill 작성</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small text-secondary"><span class="badge badge-accent">5분</span> step/03-commands-mcp 브랜치</p>
+            <p><span class="step-number">1</span> 파일 생성: <code class="inline-code">.claude/skills/review/SKILL.md</code></p>
+            <div class="code-block"><span class="cm">---</span>
+<span class="prop">name</span>: <span class="str">review</span>
+<span class="prop">description</span>: <span class="str">코드 파일을 리뷰하여 버그, 보안, 성능 문제를 찾는다</span>
+<span class="cm">---</span>
+
+<span class="fn">$ARGUMENTS</span> 경로의 파일을 리뷰한다.
+
+<span class="cm">## 리뷰 관점</span>
+1. 버그  2. 보안  3. 성능  4. 에러 처리
+
+<span class="cm">## 출력 형식</span>
+Critical / Warning / Info</div>
+            <p><span class="step-number">2</span> 실행: <code class="inline-code">/review src/app/api/tasks/route.ts</code></p>
+            <p><span class="step-number">3</span> 기대 결과: <span class="text-danger bold">Critical</span> -- assigneeId 누락 발견</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 11: 실습 - Chrome DevTools MCP -->
+<div class="slide" data-slide="11">
+    <div class="slide-header"><h2>실습 -- Chrome DevTools MCP</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small text-secondary"><span class="badge badge-accent">5분</span> step/03-commands-mcp 브랜치</p>
+            <p><span class="step-number">1</span> MCP 설치</p>
+            <div class="code-block"><span class="fn">claude</span> mcp add chrome-devtools --scope project npx chrome-devtools-mcp@latest</div>
+            <p><span class="step-number">2</span> TaskFlow 실행 후 브라우저에서 <code class="inline-code">localhost:3000</code> 열기</p>
+            <p><span class="step-number">3</span> Claude에게 검증 요청</p>
+            <div class="code-block">TaskFlow 앱에서 새 업무를 만들어봐.
+담당자를 "김개발"로 선택하고 생성한 후,
+네트워크 탭에서 POST 요청의 body와 응답을 확인해줘.</div>
+            <p><span class="step-number">4</span> 기대 결과: 요청에 assigneeId 있음, 응답에 <span class="text-danger bold">null</span></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 12: 같은 버그, 2가지 관점 -->
+<div class="slide" data-slide="12">
+    <div class="slide-header"><h2>같은 버그, 2가지 관점</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram">    /review (Skill)          Chrome DevTools (MCP)
+    ----------------         ---------------------
+관점: 코드 분석                브라우저 동작
+발견: "assigneeId 누락"       "응답에 null"
+방법: 정적 분석                동적 관찰
+
+         |                        |
+         +------ 같은 버그 -------+</div>
+            <div class="two-col">
+                <div class="card">
+                    <p class="small"><span class="accent">Skill</span> &rarr; 코드를 <span class="bold">읽고</span> 문제를 찾음 (정적 분석)</p>
+                </div>
+                <div class="card">
+                    <p class="small"><span class="accent">DevTools</span> &rarr; 실행 중인 앱을 <span class="bold">관찰</span> (동적 검증)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 13: 핵심 정리 -->
+<div class="slide" data-slide="13">
+    <div class="slide-header"><h2>핵심 정리</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>개념</th><th>한 줄 요약</th><th>비유</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="bold">기초 커맨드</span></td><td>7개면 충분</td><td>자주 쓰는 단축키</td></tr>
+                        <tr><td><span class="bold">Skill</span></td><td>반복 작업을 /명령어로</td><td>매크로</td></tr>
+                        <tr><td><span class="bold">MCP</span></td><td>외부 도구 연결</td><td>USB 포트</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="bullet-list">
+                <li>Skill = 팀 전체가 <span class="accent">같은 워크플로우</span>를 공유</li>
+                <li>MCP = <span class="accent">2-3개만</span> (토큰 비용!)</li>
+                <li>Skill + MCP = 코드 분석 + 실제 검증을 한 번에</li>
+            </ul>
+            <div class="card card-accent">
+                <p class="small"><span class="accent">다음 섹션 예고:</span> Hooks = "매번 자동으로 실행되는 규칙" &mdash; CLAUDE.md는 무시 가능, Hooks는 100% 강제</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>

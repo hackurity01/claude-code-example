@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 2: Claude Code 기초 활용</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS (pre, .code-block, .ascii-diagram) */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.code-block .code-label {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-size: clamp(0.5rem, 0.7vw, 0.65rem);
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Syntax highlighting — all use CSS variables */
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+/* Inline code */
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+tr.row-highlight { background: var(--accent-glow); font-weight: 600; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- ========== SLIDE 0: TITLE ========== -->
+<!-- 강사 멘트: "설치는 한 줄입니다. 프로젝트 폴더에서 claude만 치면 끝. 이 섹션에서 컨텍스트 윈도우를 이해하고, 구체적 프롬프트로 버그를 수정하는 것까지 해보겠습니다." -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 02</div>
+            <h1>Claude Code 기초 활용</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">Claude Code를 설치하고, 컨텍스트 윈도우를 이해하고, 구체적 프롬프트로 버그를 수정할 수 있다.</p>
+            <p style="margin-top: var(--content-gap); font-family: var(--font-code); font-size: var(--small-size); color: var(--text-secondary);">25분 | 컨텍스트 윈도우, 프롬프팅, Plan Mode</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 1: SETUP ========== -->
+<!-- 강사 멘트: "설치는 한 줄입니다. 프로젝트 폴더에서 claude만 치면 끝. Claude가 프로젝트를 인식하면서 package.json, 설정 파일들을 읽습니다. 지금 우리 main 브랜치에는 CLAUDE.md가 없죠? 그래서 Claude는 아무 규칙 없이 '자기 판단'으로 일합니다." -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>Claude Code 셋업</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small" style="margin-bottom: var(--element-gap);"><span class="accent bold">설치 가이드:</span> <a href="https://code.claude.com/docs/en/setup" target="_blank" style="color: var(--accent); text-decoration: underline;">code.claude.com/docs/en/setup</a></p>
+
+            <div class="code-block" style="position: relative;"><span class="code-label">bash</span>
+<span class="cm"># macOS / Linux (권장 — 자동 업데이트 포함)</span>
+<span class="fn">curl</span> -fsSL https://claude.ai/install.sh | <span class="fn">bash</span>
+
+<span class="cm"># 또는 Homebrew</span>
+<span class="fn">brew</span> install --cask claude-code
+
+<span class="cm"># 확인</span>
+<span class="fn">claude</span> --version</div>
+
+            <p class="accent bold">프로젝트 인식 과정</p>
+            <ul class="bullet-list">
+                <li><span class="step-number">1</span> <code class="inline-code">claude</code> 실행 → 현재 디렉토리를 프로젝트 루트로 인식</li>
+                <li><span class="step-number">2</span> <code class="inline-code">CLAUDE.md</code> → 팀 규칙 로딩, <code class="inline-code">.claude/settings.json</code> → 설정 로딩</li>
+                <li><span class="step-number">3</span> 대화 시작 후, 필요에 따라 <code class="inline-code">package.json</code> 등 프로젝트 파일을 도구로 읽어 스택 파악</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 2: CONTEXT WINDOW ========== -->
+<!-- 강사 멘트: "Claude가 버그를 3분 만에 고치는 걸 봤습니다. 근데 실제로 써보면, 처음엔 잘 되다가 대화가 길어지면 점점 이상해집니다. Claude가 멍청해진 게 아닙니다. 작업 책상이 가득 찬 겁니다." -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>컨텍스트 윈도우 = 작업 책상</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col">
+            <div class="card card-accent">
+                <p>여러분의 <span class="accent bold">책상 크기</span>가 정해져 있다고 상상하세요. 서류를 올릴수록 공간이 줄어들고, 가득 차면 아래에 깔린 서류는 찾을 수 없습니다.</p>
+            </div>
+
+            <div class="ascii-diagram">
+┌─────────────────────────────────────────┐
+│  시스템 프롬프트          ~6%            │
+│  CLAUDE.md               ~2%            │
+│  MCP 도구 목록           ~5~20%         │
+│  ─────────────────────────────────       │
+│  대화 이력 + 읽은 파일    ← <span style="color: var(--code-accent);">여기가 채워짐</span>  │
+│                                         │
+│  남은 공간               ← <span style="color: var(--code-property);">이게 줄어듦</span>    │
+└─────────────────────────────────────────┘
+       Opus: <span style="color: var(--code-accent);">1M 토큰</span> / Sonnet: <span style="color: var(--code-accent-secondary);">200K 토큰</span></div>
+
+            <p class="accent bold" style="text-align: center;">진짜 쓸 수 있는 공간은 생각보다 적다!</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 3: EVERY PROMPT = FULL SEND ========== -->
+<!-- 강사 멘트: "많은 분들이 오해하는 부분인데, 프롬프트를 한 번 보내면 그 메시지만 가는 게 아닙니다. 매번 전체 대화가 통째로 갑니다. 이게 바로 세션을 작게 유지해야 하는 이유입니다." -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>매 프롬프트 = 전체 전송</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col">
+            <div class="card card-accent">
+                <p>프롬프트를 보낼 때마다,<br><span class="accent bold">지금까지의 모든 대화 내용</span>이 통째로 전송됩니다.</p>
+            </div>
+
+            <div class="ascii-diagram">
+<span style="color: var(--code-string);">[1번째]</span>  →  시스템 + 메시지1                                <span style="color: var(--code-comment);">(작음)</span>
+<span style="color: var(--code-string);">[2번째]</span>  →  시스템 + 메시지1 + 응답1 + 메시지2                <span style="color: var(--code-comment);">(커짐)</span>
+<span style="color: var(--code-string);">[3번째]</span>  →  시스템 + 메시지1 + 응답1 + 메시지2 + 응답2 + ...  <span style="color: var(--code-comment);">(더 커짐)</span>
+  ...
+<span style="color: var(--code-property);">[N번째]</span>  →  시스템 + 전체 대화 이력 + 메시지N                 <span style="color: var(--code-property);">(매우 큼!)</span></div>
+
+            <ul class="bullet-list">
+                <li>대화가 길어질수록 <span class="accent bold">매번 보내는 양</span>이 기하급수적으로 증가</li>
+                <li>토큰 비용 = 누적 (이전 대화를 계속 다시 보냄)</li>
+                <li>세션이 길수록 → 느려지고, 비싸지고, 부정확해짐</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 4: CONTEXT MANAGEMENT COMMANDS ========== -->
+<!-- 강사 멘트: "/context를 치면 책상 사용량이 퍼센트로 나옵니다. 70%를 넘으면 위험 신호예요. /clear는 비용이 0입니다. 작업이 바뀔 때 무조건 치세요." -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>컨텍스트 관리 3대 명령어</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>명령어</th><th>비유</th><th>용도</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code class="inline-code">/context</code></td><td>"책상 상태 확인"</td><td>지금 얼마나 차 있는지 확인</td></tr>
+                        <tr><td><code class="inline-code">/clear</code></td><td>"책상 완전히 치우기"</td><td>작업 전환 시 반드시 실행</td></tr>
+                        <tr><td><code class="inline-code">/compact</code></td><td>"서류를 요약 메모 한 장으로"</td><td>같은 작업 이어갈 때 압축</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="code-block" style="position: relative;"><span class="code-label">demo</span>
+<span style="color: var(--code-accent);">/context</span>
+<span class="cm"># → Context window usage: (Opus 1M 기준)</span>
+<span class="cm">#     System prompt:     60,000 tokens (6%)</span>
+<span class="cm">#     Conversation:    230,000 tokens (23%)</span>
+<span class="cm">#     Available:       710,000 tokens (71%)</span></div>
+
+            <div class="card card-accent">
+                <ul class="bullet-list">
+                    <li><span class="accent bold">70% 넘으면</span> → <code class="inline-code">/compact</code>로 압축</li>
+                    <li><span class="accent bold">작업 바뀌면</span> → <code class="inline-code">/clear</code>로 초기화</li>
+                    <li>습관: <span class="accent bold">작업 전환 = /clear</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 5: ANTI-PATTERN ========== -->
+<!-- 강사 멘트: "회의를 상상해보세요. 한 회의에서 디자인 리뷰, 버그 수정, 신규 기능, 인프라 이슈를 전부 다루면 어떻게 되나요? 아무것도 제대로 결론이 안 납니다. Claude도 마찬가지입니다." -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>"Kitchen Sink Session" 안티패턴</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col">
+            <div class="two-col">
+                <div>
+                    <p class="text-danger bold small" style="margin-bottom: var(--element-gap);">나쁜 패턴 (한 세션에서 이것저것)</p>
+                    <div class="ascii-diagram">
+claude 실행
+→ 버그 수정
+→ 새 기능 추가
+→ 테스트 작성
+→ 문서 작성
+→ 리팩토링
+→ ... <span style="color: var(--code-property);">(컨텍스트 오염)</span></div>
+                </div>
+                <div>
+                    <p class="text-success bold small" style="margin-bottom: var(--element-gap);">좋은 패턴 (작업 전환마다 /clear)</p>
+                    <div class="ascii-diagram">
+claude → 버그 수정 → <span style="color: var(--code-string);">/clear</span>
+claude → 새 기능 추가 → <span style="color: var(--code-string);">/clear</span>
+claude → 테스트 작성 → <span style="color: var(--code-string);">/clear</span></div>
+                </div>
+            </div>
+
+            <div class="card card-accent" style="text-align: center;">
+                <p class="accent bold">핵심 원칙: 한 번에 한 가지 일.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 6: PROMPTING TIPS ========== -->
+<!-- 강사 멘트: "파일 경로를 정확히 모르면 어쩌냐고요? 괜찮습니다. Claude가 찾으면 됩니다. 중요한 건 '뭐가 이상한지'를 구체적으로 알려주는 겁니다. 그리고 가장 중요한 팁 — '완료 조건'을 넣으세요." -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>프롬프팅 팁</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>상황</th><th>프롬프트 예시</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>파일 위치를 아는 경우</td><td><code class="inline-code">src/components/TaskList.tsx</code>에서 completed 필터 선택 시 미완료 업무가 보여</td></tr>
+                        <tr><td>증상만 아는 경우</td><td>필터를 "완료"로 바꿔도 미완료 항목이 계속 보이는 버그가 있어. 원인 찾아줘</td></tr>
+                        <tr><td>뭔가 이상한데 모르겠는 경우</td><td>할일 목록 페이지에서 뭔가 이상해. Plan 모드로 코드 읽고 문제 분석해줘</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="two-col">
+                <div class="card" style="border-left: 3px solid var(--danger);">
+                    <p class="text-danger bold small">실패하는 프롬프트</p>
+                    <ul class="bullet-list">
+                        <li class="small">"버그 고쳐줘" → 뭘 고치라는 건지 모름</li>
+                        <li class="small">"코드 개선해줘" → 어떤 방향으로?</li>
+                        <li class="small">"전체 리팩토링해줘" → 범위가 너무 넓음</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-left: 3px solid var(--success);">
+                    <p class="text-success bold small">잘 되는 프롬프트</p>
+                    <ul class="bullet-list">
+                        <li class="small">관찰한 <span class="accent">증상</span>이 있다</li>
+                        <li class="small"><span class="accent">완료 조건</span>이 있다</li>
+                        <li class="small">2회 실패하면 <code class="inline-code">/clear</code> 후 다시 시도</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 7: INPUT METHODS ========== -->
+<!-- 강사 멘트: "프롬프트에 정보를 더 넣는 방법들입니다. @를 붙이면 파일을 직접 컨텍스트에 올립니다. 에러 스크린샷을 드래그하면 Claude가 이미지를 읽어요. 다만 @파일을 남발하면 책상이 빨리 차니까, 꼭 필요한 것만." -->
+<div class="slide" data-slide="7">
+    <div class="slide-header"><h2>프롬프팅 -- 추가 입력 방법</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>방법</th><th>사용법</th><th>추천 상황</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>@파일 참조</td><td><code class="inline-code">@src/lib/utils.ts</code> 이 함수 설명해줘</td><td>특정 파일을 컨텍스트에 추가</td></tr>
+                        <tr><td>이미지 붙여넣기</td><td>드래그앤드롭 또는 Ctrl+V</td><td>에러 스크린샷 전달</td></tr>
+                        <tr><td>파이프 입력</td><td><code class="inline-code">npm run dev 2>&1 | claude "분석해줘"</code></td><td>빌드 에러, 로그 분석</td></tr>
+                        <tr><td><code class="inline-code">-p</code> 플래그</td><td><code class="inline-code">echo "질문" | claude -p</code></td><td>대화 없이 1회성 답변</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card card-accent">
+                <p class="small"><span class="accent bold">주의:</span> @파일을 많이 참조하면 컨텍스트가 빨리 찬다. 꼭 필요한 파일만!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 8: PERMISSION MODES ========== -->
+<div class="slide" data-slide="8">
+    <div class="slide-header"><h2>권한 모드 — Claude에게 얼마나 맡길 것인가</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small text-secondary"><span class="accent bold">전환:</span> <code class="inline-code">Shift+Tab</code>으로 순환 &mdash; default &rarr; acceptEdits &rarr; plan &rarr; auto</p>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>모드</th><th>동작</th><th>사용 시점</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="bold">default</span></td><td>파일 읽기는 자유, 편집/명령은 <span class="accent">매번 확인</span></td><td>처음 사용하거나 민감한 코드 작업 시</td></tr>
+                        <tr><td><span class="bold">acceptEdits</span></td><td>파일 편집 + 기본 명령(mkdir, rm 등) 자동 승인.<br>Bash 실행/네트워크는 여전히 확인</td><td>신뢰할 수 있는 작업, 빠른 편집 시</td></tr>
+                        <tr><td><span class="bold">plan</span></td><td>코드를 <span class="accent">읽기만</span> 함. 수정/실행 안 함</td><td>탐색, 계획, 방향 잡기</td></tr>
+                        <tr><td><span class="bold accent">auto</span> <span class="badge badge-accent">2026.03~</span></td><td>AI 분류기가 매 작업을 평가 &mdash; 안전하면 자동 승인,<br><span class="text-danger">위험하면 차단</span> 후 대안 시도</td><td>장시간 작업, 최소 개입</td></tr>
+                        <tr><td><span class="bold">dontAsk</span></td><td><code class="inline-code">permissions.allow</code> 규칙에 매칭되는 것만 실행,<br>나머지는 프롬프트 없이 거부</td><td>CI/CD 파이프라인, 자동화 스크립트</td></tr>
+                        <tr><td><span class="bold text-danger">bypassPermissions</span></td><td><span class="text-danger">모든 권한 검사 비활성화</span>. 확인 없이 전부 실행</td><td><span class="text-danger">컨테이너/VM 전용</span> &mdash; 호스트 금지</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card" style="border-left: 3px solid var(--danger);">
+                <p class="small"><span class="text-danger bold">bypassPermissions</span> = 구 <code class="inline-code">--dangerously-skip-permissions</code> 플래그의 후속. 모든 검사를 건너뛰므로 <code class="inline-code">rm -rf ~/</code> 같은 명령도 그대로 실행됨. <span class="accent bold">auto 모드</span>가 이를 대체하는 안전한 대안 &mdash; 분류기가 위험한 작업을 사전 차단</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 10: PLAN MODE DEEP DIVE ========== -->
+<div class="slide" data-slide="9">
+    <div class="slide-header"><h2>Plan Mode — 가장 중요한 모드</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent">
+                <p class="small text-secondary">Boris Cherny (Claude Code 창시자):</p>
+                <p><span class="accent bold">"Don't keep pushing when things go sideways &mdash; switch back to plan mode and re-plan."</span></p>
+                <p class="text-secondary small">"일이 꼬이면 밀고 나가지 말고, Plan Mode로 돌아가서 다시 계획을 세워라."</p>
+            </div>
+
+            <div class="ascii-diagram"><span class="cm">Plan First 워크플로우 (R.P.I)</span>
+
+<span style="color: var(--code-accent);">①</span> <span style="color: var(--code-string);">[Plan]</span> "이 버그를 고치려면 뭘 확인해야 해?"     <span class="cm">Research</span>
+<span style="color: var(--code-accent);">②</span> <span style="color: var(--code-string);">[Plan]</span> "이 방향으로 수정할 건데 맞아?"          <span class="cm">Plan</span>
+<span style="color: var(--code-accent);">③</span> <span style="color: var(--code-keyword);">[일반]</span> "계획대로 수정하고 테스트 돌려"          <span class="cm">Implement</span>
+<span style="color: var(--code-accent);">④</span> 결과가 이상하면 &rarr; <span style="color: var(--code-property);">즉시 Plan Mode로 복귀</span>    <span class="cm">Re-plan</span></div>
+
+            <div class="two-col">
+                <div class="card" style="border-left: 3px solid var(--danger);">
+                    <p class="small text-danger bold">바로 실행하면</p>
+                    <p class="small text-secondary">잘못된 방향으로 수십 개 파일 수정 &rarr; 되돌리기 어려움 + 컨텍스트 낭비</p>
+                </div>
+                <div class="card" style="border-left: 3px solid var(--success);">
+                    <p class="small text-success bold">Plan 먼저 하면</p>
+                    <p class="small text-secondary">코드를 안 건드리니 깨끗한 상태에서 방향 수정 &rarr; 1-shot 실행</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 11: HANDS-ON PART 1 ========== -->
+<!-- 강사 멘트: "자, 첫 실습입니다. main 브랜치로 이동해서 claude를 실행하세요. Shift+Tab으로 Plan Mode로 바꾸고, 프로젝트 구조를 물어보세요. 그리고 /context로 지금 책상이 얼마나 찼는지 확인해보세요." -->
+<div class="slide" data-slide="10">
+    <div class="slide-header"><h2>실습 Part 1 -- 프로젝트 탐색</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small text-secondary"><span class="badge badge-accent">3분</span> 시작 브랜치: <code class="inline-code">main</code></p>
+
+            <div class="code-block" style="position: relative;"><span class="code-label">bash</span>
+<span class="fn">cd</span> ~/workspace/claude-code-example
+<span class="fn">git</span> checkout main
+<span class="fn">claude</span></div>
+
+            <ul class="bullet-list">
+                <li><span class="step-number">1</span> Shift+Tab으로 Plan Mode 전환</li>
+                <li><span class="step-number">2</span> 프로젝트 탐색 요청: "이 프로젝트의 구조와 핵심 기능을 분석해줘"</li>
+                <li><span class="step-number">3</span> <code class="inline-code">/context</code>로 컨텍스트 사용량 확인</li>
+            </ul>
+
+            <div class="card">
+                <p class="small text-secondary">→ 파일을 여러 개 읽으면서 컨텍스트가 벌써 채워진 것을 확인</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 12: HANDS-ON PART 2 - VAGUE ========== -->
+<!-- 강사 멘트: "먼저 제가 나쁜 프롬프트로 시도해보겠습니다. '필터가 안 돼요, 고쳐주세요.' 보세요, Claude가 뭘 고쳐야 할지 모르니까 전체 프로젝트를 다 뒤지고 있습니다." -->
+<div class="slide" data-slide="11">
+    <div class="slide-header"><h2>실습 Part 2 -- 모호한 프롬프트 (강사 데모)</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block" style="position: relative;"><span class="code-label">Step 1</span>
+<span style="color: var(--code-accent);">/clear</span></div>
+
+            <div class="card" style="border-left: 3px solid var(--danger);">
+                <p class="small text-secondary">Step 2: 모호한 프롬프트 시도</p>
+                <p style="font-family: var(--font-code); font-size: var(--code-size);">필터가 안 돼요, 고쳐주세요.</p>
+            </div>
+
+            <p class="accent bold">관찰 포인트:</p>
+            <ul class="bullet-list">
+                <li>Claude가 "어떤 필터?"를 추측하며 여러 파일을 뒤짐</li>
+                <li>시간이 오래 걸림</li>
+                <li>불필요한 파일까지 탐색</li>
+                <li>결과가 불확실</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 13: HANDS-ON PART 2 - SPECIFIC ========== -->
+<!-- 강사 멘트: "이번에는 여러분이 직접 구체적 프롬프트를 입력해보세요. 파일 경로와 증상을 명확히 넣었습니다. Claude가 정확히 그 파일의 그 문제에 집중하는 걸 보세요." -->
+<div class="slide" data-slide="12">
+    <div class="slide-header"><h2>실습 Part 2 -- 구체적 프롬프트 (수강생 실습)</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block" style="position: relative;"><span class="code-label">Step 1</span>
+<span style="color: var(--code-accent);">/clear</span></div>
+
+            <div class="card" style="border-left: 3px solid var(--success);">
+                <p class="small text-secondary">Step 2: 공식 적용한 프롬프트</p>
+                <p style="font-family: var(--font-code); font-size: var(--code-size);">src/components/TaskList.tsx에서 completed 필터를 선택하면<br>미완료 업무가 표시되는 버그가 있어.<br>필터 조건의 비교 연산자를 확인해서 수정해줘.</p>
+            </div>
+
+            <div class="card card-accent">
+                <p class="small"><span class="accent bold">포인트:</span> <span class="badge badge-accent">증상</span> completed 필터 → 미완료 표시 + <span class="badge badge-accent">완료 조건</span> 비교 연산자 수정 + <span class="badge badge-accent">위치 힌트</span> src/components/TaskList.tsx</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 14: BEFORE/AFTER ========== -->
+<!-- 강사 멘트: "비교해보세요. 같은 버그를 고치는데, 프롬프트 품질에 따라 결과가 완전히 달랐죠? 이게 이 섹션의 핵심입니다 — 프롬프트 품질이 결과 품질을 결정한다." -->
+<div class="slide" data-slide="13">
+    <div class="slide-header"><h2>Before/After 비교</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>비교 항목</th><th>모호한 프롬프트</th><th>구체적 프롬프트</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>탐색 파일 수</td><td class="text-danger">5~10개</td><td class="text-success">1~2개</td></tr>
+                        <tr><td>소요 시간</td><td class="text-danger">길다</td><td class="text-success">짧다</td></tr>
+                        <tr><td>토큰 사용</td><td class="text-danger">많다</td><td class="text-success">적다</td></tr>
+                        <tr><td>정확도</td><td class="text-danger">불확실</td><td class="text-success">정확</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card card-accent">
+                <p><span class="accent bold">핵심:</span> 같은 버그, 같은 결과 — 프롬프트 품질이 <span class="accent bold">속도와 비용</span>을 결정한다</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 15: SUMMARY ========== -->
+<!-- 강사 멘트: "좋습니다. 정리하면 — 컨텍스트는 작업 책상이다, /clear를 습관화하자, 프롬프트는 구체적으로. 그리고 Plan Mode로 먼저 계획하고 실행하자. 다음 섹션에서는 CLAUDE.md — 팀 규칙 통일하는 방법을 배우겠습니다." -->
+<div class="slide" data-slide="14">
+    <div class="slide-header"><h2>핵심 정리 & 섹션 전환</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col">
+            <ul class="bullet-list">
+                <li><span class="step-number">1</span> <span class="accent bold">컨텍스트 윈도우</span> = 작업 책상 (크기 제한 있음)</li>
+                <li><span class="step-number">2</span> <span class="accent bold">3대 명령어:</span> /context, /clear, /compact</li>
+                <li><span class="step-number">3</span> <span class="accent bold">프롬프팅:</span> 관찰한 증상 + 완료 조건을 구체적으로</li>
+                <li><span class="step-number">4</span> <span class="accent bold">Plan Mode:</span> Shift+Tab으로 안전하게 탐색/계획</li>
+                <li><span class="step-number">5</span> <span class="accent bold">검증 루프:</span> 이상하면 즉시 Plan Mode로 복귀</li>
+            </ul>
+
+            <div class="card card-accent">
+                <p class="small text-secondary">다음 섹션 예고:</p>
+                <p>좋은 프롬프트로 버그를 고칠 수 있었죠? 그런데 팀에서 쓸 때는 문제가 하나 더 있습니다. 팀 규칙이 없으면 결과가 사람마다 다릅니다. 다음 섹션에서 이걸 해결하는 <span class="accent bold">CLAUDE.md</span>를 배웁니다.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>

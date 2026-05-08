@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 5: Hooks</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS (pre, .code-block, .ascii-diagram) */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.code-block .code-label {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-size: clamp(0.5rem, 0.7vw, 0.65rem);
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Syntax highlighting — all use CSS variables */
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+/* Inline code */
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+tr.row-highlight { background: var(--accent-glow); font-weight: 600; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- Slide 0: Title -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 05</div>
+            <h1>Hooks</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">CLAUDE.md는 무시될 수 있다. Hooks는 반드시 실행된다.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 1: CLAUDE.md vs Hooks -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>CLAUDE.md vs Hooks -- 핵심 구분</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="two-col">
+                <div class="card">
+                    <p class="small bold">CLAUDE.md = "안내문" (advisory)</p>
+                    <ul class="bullet-list">
+                        <li>Claude가 <span class="text-danger">무시할 수 있음</span></li>
+                        <li>".env 파일 수정 금지"</li>
+                        <li>"Prettier로 포맷팅"</li>
+                    </ul>
+                </div>
+                <div class="card card-accent">
+                    <p class="small bold">Hooks = "자동문" (enforced)</p>
+                    <ul class="bullet-list">
+                        <li><span class="text-success">100% 실행 보장</span></li>
+                        <li>.env 편집 시도 &rarr; 자동 차단</li>
+                        <li>파일 저장 &rarr; 자동 Prettier</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card card-accent">
+                <p class="small">"Claude가 이걸 무시하면 큰일 나는가?" &rarr; <span class="accent">예: Hooks</span> | 아니오: CLAUDE.md</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 2: Hook이란 무엇인가 -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>Hook이란 무엇인가</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <ul class="bullet-list">
+                <li>Claude가 특정 행동을 할 때 <span class="accent">자동으로 실행</span>되는 스크립트</li>
+                <li>실행 주체: Claude가 아니라 <span class="accent">하네스(시스템)</span>가 실행</li>
+                <li>"사람 개입 없이 매번 자동으로 실행되는 규칙"</li>
+            </ul>
+            <div class="ascii-diagram">Claude의 동작              Hook이 자동 개입
+---------------------------------------------
+파일 수정하려 함       &rarr;  "잠깐, 이 파일은 안 돼!" (차단)
+파일 수정 완료         &rarr;  "자동 포매팅 돌려놓을게" (자동화)
+세션 시작              &rarr;  "현재 상황 미리 알려줄게" (컨텍스트)</div>
+            <div class="card card-accent">
+                <p class="small">CI/CD에서 린트가 실패하면 PR이 머지 안 되는 것처럼 -- 선택의 여지가 없는 규칙</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: Hook 라이프사이클 -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>Hook 라이프사이클 -- 5가지 실행 시점</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <img src="images/section5-4.png" alt="Hook 라이프사이클 다이어그램 — SessionStart, PreToolUse, PostToolUse 실행 흐름" style="max-height: min(70vh, 550px); width: auto; display: block; margin: 0 auto; border-radius: 8px;">
+            <p class="small text-secondary">실무 90%는 <span class="accent">PreToolUse</span>, <span class="accent">PostToolUse</span>, <span class="accent">SessionStart</span> 3가지로 해결</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: 주요 Hook 이벤트 -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>주요 Hook 이벤트</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Hook</th><th>시점</th><th>대표 용도</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="row-highlight"><td><span class="bold">PreToolUse</span></td><td>도구 실행 <span class="accent">전</span></td><td>.env 편집 차단, 위험 명령 차단</td></tr>
+                        <tr class="row-highlight"><td><span class="bold">PostToolUse</span></td><td>도구 실행 <span class="accent">후</span></td><td>자동 Prettier, 자동 린트</td></tr>
+                        <tr class="row-highlight"><td><span class="bold">SessionStart</span></td><td>세션 시작 시</td><td>git 상태 주입, 환경 정보 로딩</td></tr>
+                        <tr><td>UserPromptSubmit</td><td>프롬프트 제출 직후</td><td>컨텍스트 자동 주입</td></tr>
+                        <tr><td>Stop</td><td>Claude 응답 완료 시</td><td>결과 로깅, 자동 정리</td></tr>
+                        <tr><td>Notification</td><td>알림 발생 시</td><td>Slack/Discord 연동</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: Hook 작성법 -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>Hook 작성법 -- settings.json 구조</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm">// .claude/settings.json</span>
+{
+  <span class="prop">"hooks"</span>: {
+    <span class="prop">"PreToolUse"</span>: [
+      {
+        <span class="prop">"matcher"</span>: <span class="str">"Edit|Write"</span>,
+        <span class="prop">"hooks"</span>: [
+          {
+            <span class="prop">"type"</span>: <span class="str">"command"</span>,
+            <span class="prop">"command"</span>: <span class="str">"스크립트 또는 명령어"</span>,
+            <span class="prop">"timeout"</span>: <span class="num">10</span>
+          }
+        ]
+      }
+    ]
+  }
+}</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>키</th><th>설명</th><th>예시</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code class="inline-code">matcher</code></td><td>어떤 도구에 반응할지</td><td><code class="inline-code">"Edit|Write"</code></td></tr>
+                        <tr><td><code class="inline-code">type</code></td><td>Hook 유형</td><td><code class="inline-code">"command"</code></td></tr>
+                        <tr><td><code class="inline-code">command</code></td><td>실행할 명령</td><td>셸 스크립트</td></tr>
+                        <tr><td><code class="inline-code">timeout</code></td><td>제한 시간 (초)</td><td><code class="inline-code">10</code>, <code class="inline-code">15</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-secondary">참고: <a href="https://github.com/disler/claude-code-hooks-mastery/blob/main/.claude/settings.json" target="_blank" style="color: var(--accent);">실전 Hooks 설정 예시</a> (모든 Hook 타입을 커버하는 완전한 settings.json)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: PreToolUse 예시 -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>PreToolUse 예시 -- .env 편집 차단</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram"><span class="num">1</span> Claude가 Edit/Write 도구를 쓰려고 함
+     |
+     v
+<span class="num">2</span> Hook이 stdin으로 파일 경로를 받음
+     {<span class="prop">"tool_input"</span>: {<span class="prop">"file_path"</span>: <span class="str">".env"</span>}}
+     |
+     v
+<span class="num">3</span> 파일명이 .env면   &rarr; <span class="prop">"deny"</span> 출력 &rarr; 차단됨
+     그 외 파일이면   &rarr; 아무것도 안 함 &rarr; <span class="str">허용됨</span></div>
+            <div class="card card-accent">
+                <p class="small">CLAUDE.md에 ".env 수정 금지"라고 써도 Claude가 무시할 수 있지만, Hook으로 차단하면 <span class="accent">물리적으로 불가능</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: PostToolUse 예시 -->
+<div class="slide" data-slide="7">
+    <div class="slide-header"><h2>PostToolUse 예시 -- 자동 포매팅</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm">// PostToolUse Hook: 파일 수정 후 자동 Prettier</span>
+{
+  <span class="prop">"matcher"</span>: <span class="str">"Write|Edit"</span>,
+  <span class="prop">"hooks"</span>: [{
+    <span class="prop">"type"</span>: <span class="str">"command"</span>,
+    <span class="prop">"command"</span>: <span class="str">"FILE=$(...); npx prettier --write \"$FILE\""</span>,
+    <span class="prop">"timeout"</span>: <span class="num">15</span>
+  }]
+}</div>
+            <ul class="bullet-list">
+                <li>Claude가 파일을 수정할 때마다 &rarr; <span class="accent">자동으로 Prettier 실행</span></li>
+                <li>"포맷팅 해줘"라고 말할 필요 없음</li>
+                <li>팀 코드 스타일이 <span class="accent">항상 일관</span>됨</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: SessionStart Hook -->
+<div class="slide" data-slide="8">
+    <div class="slide-header"><h2>SessionStart Hook -- 동적 컨텍스트 로딩</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm">// SessionStart: 세션 시작 시 git 상태 자동 주입</span>
+{
+  <span class="prop">"hooks"</span>: [{
+    <span class="prop">"type"</span>: <span class="str">"command"</span>,
+    <span class="prop">"command"</span>: <span class="str">"echo '## Current Context'; \
+  git branch --show-current; \
+  git log --oneline -5; \
+  git status --short"</span>,
+    <span class="prop">"timeout"</span>: <span class="num">10</span>
+  }]
+}</div>
+            <ul class="bullet-list">
+                <li>새 세션 시작 시 Claude가 자동으로 <span class="accent">현재 상황을 인지</span></li>
+                <li>"지금 어떤 브랜치야?" 질문 불필요</li>
+                <li>CLAUDE.md는 정적, SessionStart Hook은 <span class="accent">동적</span> (실시간 정보)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 9: 실습 Part 1 - .env 수정 시도 -->
+<div class="slide" data-slide="9">
+    <div class="slide-header"><h2>실습 Part 1 -- .env 편집 차단</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p><span class="step-number">1</span> Hook <span class="text-danger bold">없는</span> 상태에서 .env 수정 요청</p>
+            <div class="code-block">.env 파일에 NEXT_PUBLIC_API_URL=http://localhost:4000을 추가해줘.</div>
+            <p class="small text-secondary">예상 결과: Claude가 .env 파일을 수정함 (위험!)</p>
+            <p><span class="step-number">2</span> <code class="inline-code">.claude/settings.json</code>에 <span class="accent">보안 Hook 추가</span></p>
+            <p><span class="step-number">3</span> <span class="text-success bold">동일 요청 재시도</span> &rarr; 차단됨!</p>
+            <div class="card card-accent">
+                <p class="small">같은 요청인데 Hook 추가 후엔 차단 -- "안내문 vs 자동문"</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 10: 실습 - PreToolUse Hook 코드 -->
+<div class="slide" data-slide="10">
+    <div class="slide-header"><h2>실습 -- PreToolUse Hook 코드</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm">// .claude/settings.json</span>
+{
+  <span class="prop">"hooks"</span>: {
+    <span class="prop">"PreToolUse"</span>: [{
+      <span class="prop">"matcher"</span>: <span class="str">"Edit|Write"</span>,
+      <span class="prop">"hooks"</span>: [{
+        <span class="prop">"type"</span>: <span class="str">"command"</span>,
+        <span class="prop">"command"</span>: <span class="str">"FILE=$(jq -r '.tool_input.file_path' &lt; /dev/stdin); \
+  if echo \"$FILE\" | grep -q '\\.env'; then \
+    echo '{\"hookSpecificOutput\":{...\"deny\"...}}'; \
+  fi"</span>,
+        <span class="prop">"timeout"</span>: <span class="num">10</span>
+      }]
+    }]
+  }
+}</div>
+            <p class="small text-secondary">파일 경로에 <code class="inline-code">.env</code>가 포함되면 &rarr; deny 응답으로 차단</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 11: 실습 Part 2 - 자동 포매팅 -->
+<div class="slide" data-slide="11">
+    <div class="slide-header"><h2>실습 Part 2 -- 자동 포매팅 Hook</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p><span class="step-number">1</span> settings.json에 <span class="accent">PostToolUse Hook</span> 추가</p>
+            <div class="code-block"><span class="prop">"PostToolUse"</span>: [{
+  <span class="prop">"matcher"</span>: <span class="str">"Write|Edit"</span>,
+  <span class="prop">"hooks"</span>: [{
+    <span class="prop">"type"</span>: <span class="str">"command"</span>,
+    <span class="prop">"command"</span>: <span class="str">"FILE=$(...); \
+  if echo \"$FILE\" | grep -qE '\\.(ts|tsx|js|jsx)$'; then \
+    npx prettier --write \"$FILE\"; \
+  fi"</span>,
+    <span class="prop">"timeout"</span>: <span class="num">15</span>
+  }]
+}]</div>
+            <p><span class="step-number">2</span> 코드 수정 요청 &rarr; <span class="text-success bold">자동 포매팅 확인</span></p>
+            <div class="card card-accent">
+                <p class="small">Claude가 코드를 수정한 직후, Prettier가 자동으로 실행됨</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 12: 실습 Part 3 - SessionStart -->
+<div class="slide" data-slide="12">
+    <div class="slide-header"><h2>실습 Part 3 -- SessionStart 동적 컨텍스트</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p><span class="step-number">1</span> settings.json에 <span class="accent">SessionStart Hook</span> 추가</p>
+            <div class="code-block"><span class="prop">"SessionStart"</span>: [{
+  <span class="prop">"hooks"</span>: [{
+    <span class="prop">"type"</span>: <span class="str">"command"</span>,
+    <span class="prop">"command"</span>: <span class="str">"echo '## Current Context'; \
+  echo \"Branch: $(git branch --show-current)\"; \
+  git log --oneline -5; \
+  git status --short"</span>,
+    <span class="prop">"timeout"</span>: <span class="num">10</span>
+  }]
+}]</div>
+            <p><span class="step-number">2</span> <code class="inline-code">/clear</code> 후 "지금 프로젝트 상황이 어때?"</p>
+            <p><span class="step-number">3</span> Claude가 추가 명령 없이 <span class="accent">바로 현재 상태를 알고 있음</span></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 13: 완성된 settings.json -->
+<div class="slide" data-slide="13">
+    <div class="slide-header"><h2>완성된 settings.json</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block">{
+  <span class="prop">"hooks"</span>: {
+    <span class="prop">"SessionStart"</span>: [{
+      <span class="prop">"hooks"</span>: [{ <span class="prop">"type"</span>: <span class="str">"command"</span>,
+        <span class="prop">"command"</span>: <span class="str">"git branch/log/status 주입"</span> }]
+    }],
+    <span class="prop">"PreToolUse"</span>: [{
+      <span class="prop">"matcher"</span>: <span class="str">"Edit|Write"</span>,
+      <span class="prop">"hooks"</span>: [{ <span class="prop">"type"</span>: <span class="str">"command"</span>,
+        <span class="prop">"command"</span>: <span class="str">".env 파일이면 deny"</span> }]
+    }],
+    <span class="prop">"PostToolUse"</span>: [{
+      <span class="prop">"matcher"</span>: <span class="str">"Write|Edit"</span>,
+      <span class="prop">"hooks"</span>: [{ <span class="prop">"type"</span>: <span class="str">"command"</span>,
+        <span class="prop">"command"</span>: <span class="str">"npx prettier --write"</span> }]
+    }]
+  }
+}</div>
+            <p class="small text-secondary">SessionStart = 컨텍스트 준비 | PreToolUse = 위험 차단 | PostToolUse = 자동화</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 14: 핵심 정리 -->
+<div class="slide" data-slide="14">
+    <div class="slide-header"><h2>핵심 정리 -- Hook 3종 세트</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="grid">
+                <div class="card card-accent">
+                    <p class="small bold" style="color: var(--accent);">PreToolUse = "이건 차단해라" (방어)</p>
+                    <p class="small text-secondary">.env 보호, 위험 명령 차단</p>
+                </div>
+                <div class="card card-accent">
+                    <p class="small bold" style="color: var(--accent);">PostToolUse = "알아서 해라" (자동화)</p>
+                    <p class="small text-secondary">자동 Prettier, 자동 린트, 자동 테스트</p>
+                </div>
+                <div class="card card-accent">
+                    <p class="small bold" style="color: var(--accent);">SessionStart = "미리 준비해라" (컨텍스트)</p>
+                    <p class="small text-secondary">git 상태, 환경 정보, 최근 이슈</p>
+                </div>
+            </div>
+            <div class="card card-accent">
+                <p style="text-align:center;"><span class="accent">"CLAUDE.md는 무시될 수 있다. Hooks는 반드시 실행된다."</span></p>
+            </div>
+            <p class="small text-secondary" style="text-align:center;">다음 섹션: 플러그인 생태계 -- 다른 사람이 만든 Hook, Skill, MCP를 패키지로</p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>

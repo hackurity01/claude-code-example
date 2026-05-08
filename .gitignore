@@ -41,3 +41,6 @@ prisma/dev.db-journal
 
 # Claude Code
 .claude/settings.local.json
+
+# slide build output
+/_site/

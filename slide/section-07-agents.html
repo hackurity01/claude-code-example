@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 7: 커스텀 에이전트 & 오케스트레이션</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS                                 */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+.badge-danger { background: rgba(220,38,38,0.1); color: var(--danger); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- =========================================== -->
+<!-- SLIDE 0: TITLE                              -->
+<!-- =========================================== -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 07</div>
+            <h1>커스텀 에이전트<br>&amp; 오케스트레이션</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">역할을 나눠 품질을 높이고, 팀으로 연결해 자동화한다</p>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 1: 문제 제기                           -->
+<!-- =========================================== -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>Claude 한 명이 전부 다 한다면</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram"><span class="str">"이 파일 리뷰하고 테스트 작성하고 문서도 만들어줘"</span>
+
+Claude가 하는 일:
+  <span class="num">1.</span> 파일 구조 파악     <span class="cm">(컨텍스트 소비)</span>
+  <span class="num">2.</span> 코드 리뷰          <span class="cm">(컨텍스트 소비)</span>
+  <span class="num">3.</span> 테스트 작성         <span class="cm">(컨텍스트 더 소비)</span>
+  <span class="num">4.</span> 문서 작성          <span class="cm">(컨텍스트 거의 풀)</span>
+  <span class="num">5.</span> <span class="prop">...앞에서 뭘 지시했더라?</span></div>
+            <div class="two-col">
+                <div class="card" style="border-left: 3px solid var(--danger);">
+                    <p class="small text-danger bold">뒤로 갈수록 품질 하락</p>
+                    <p class="small text-secondary">리뷰는 꼼꼼, 테스트는 대충, 문서는 빠뜨림</p>
+                </div>
+                <div class="card" style="border-left: 3px solid var(--danger);">
+                    <p class="small text-danger bold">결과물이 매번 다름</p>
+                    <p class="small text-secondary">같은 요청인데 매번 다른 포맷</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 2: 해결책                              -->
+<!-- =========================================== -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>해결책 &mdash; 역할을 나누자</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram">한 명이 다 하는 대신:
+
+  <span class="fn">code-reviewer</span>  &rarr; <span class="str">"이 파일의 버그와 보안만 봐"</span>
+  <span class="fn">test-writer</span>    &rarr; <span class="str">"이 이슈에 대한 테스트만 써"</span>
+  <span class="fn">doc-writer</span>     &rarr; <span class="str">"이 변경을 문서로 정리해"</span>
+
+각자 전문화된 지시 아래 한 가지에만 집중
+&rarr; 품질 <span class="str">&uarr;</span>  일관성 <span class="str">&uarr;</span>  재현 가능성 <span class="str">&uarr;</span></div>
+            <div class="card card-accent">
+                <p class="small"><span class="accent bold">Boris의 접근법:</span> 에이전트는 하나의 거대한 에이전트가 아니라 모듈화된 역할이다. 신뢰성은 전문화와 제약에서 나온다.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 3: 서브에이전트                         -->
+<!-- =========================================== -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>서브에이전트 &mdash; 컨텍스트를 보호하는 기술</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="two-col">
+                <div class="card" style="border-left: 3px solid var(--danger);">
+                    <p class="small text-danger bold">일반적인 사용</p>
+                    <p class="small">"인증 관련 파일을 전부 찾아 분석해줘"</p>
+                    <p class="small text-secondary">&rarr; 메인 컨텍스트에 수십 개 파일 내용이 쌓임</p>
+                </div>
+                <div class="card" style="border-left: 3px solid var(--success);">
+                    <p class="small text-success bold">서브에이전트로 위임</p>
+                    <p class="small">Claude가 별도 컨텍스트에서 조사</p>
+                    <p class="small text-secondary">&rarr; 요약만 메인에 반환, 컨텍스트 깨끗 유지</p>
+                </div>
+            </div>
+            <div class="ascii-diagram"><span class="cm">서브에이전트 = 별도의 작업 책상에서 일하고, 보고서만 가져오는 동료</span>
+
+  <span class="type">[메인 책상]</span>  &larr;&mdash; 보고서 &mdash;&mdash;  <span class="fn">[서브에이전트 책상]</span>
+   깨끗 유지                      파일 조사 수행</div>
+            <div class="card card-accent">
+                <p class="small"><span class="accent bold">개념 구분:</span> 서브에이전트는 <span class="accent">실행 메커니즘</span>(별도 컨텍스트에서 작업 위임)이고,<br>커스텀 에이전트는 그 서브에이전트에게 <span class="accent">"역할과 원칙"</span>을 부여하는 정의 파일</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 4: 커스텀 에이전트 소개                  -->
+<!-- =========================================== -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>Claude Code의 커스텀 에이전트</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm">커스텀 에이전트 = .claude/agents/{이름}.md</span>
+
+  .claude/
+  └── agents/
+      ├── <span class="fn">code-reviewer</span>.md    <span class="cm">&larr; 코드 리뷰 전문가</span>
+      ├── <span class="fn">test-writer</span>.md      <span class="cm">&larr; 테스트 작성 전문가</span>
+      └── <span class="fn">doc-writer</span>.md       <span class="cm">&larr; 문서 작성 전문가</span></div>
+            <div class="two-col">
+                <div class="card card-accent">
+                    <p class="small accent bold">사용법</p>
+                    <p class="small">대화에서 에이전트 이름을 언급하면<br>해당 정의를 참조하여 실행</p>
+                </div>
+                <div class="card">
+                    <p class="small bold">예시</p>
+                    <p class="small"><code class="inline-code">code-reviewer 에이전트로 TaskForm.tsx를 리뷰해줘</code></p>
+                </div>
+            </div>
+            <p class="small text-secondary">CLAUDE.md처럼 git에 커밋하면, <span class="accent">팀 전체가 같은 에이전트를 공유</span>할 수 있다</p>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 5: 에이전트 정의 파일 해부               -->
+<!-- =========================================== -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>에이전트 정의 파일 해부</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm">---</span>                                  <span class="cm">&larr; YAML frontmatter (필수)</span>
+<span class="prop">name</span>: <span class="str">code-reviewer</span>                  <span class="cm">&larr; 에이전트 식별 이름</span>
+<span class="prop">description</span>: <span class="str">코드 품질과 보안 관점에서 리뷰</span>
+<span class="cm">---</span>
+
+<span class="fn"># code-reviewer</span>
+코드 품질과 보안 관점에서 리뷰하는 에이전트.
+
+<span class="fn">## 핵심 역할</span>                         <span class="cm">&larr; "무엇을" (좁게!)</span>
+지정된 파일의 코드를 분석하여 이슈를 보고한다.
+
+<span class="fn">## 작업 원칙</span>                         <span class="cm">&larr; "어떻게" (구체적으로!)</span>
+<span class="num">1.</span> 버그 가능성이 가장 높은 패턴 우선 검사
+<span class="num">2.</span> 보안 이슈 반드시 확인
+<span class="num">3.</span> CLAUDE.md 규칙 준수 여부 확인
+
+<span class="fn">## 출력 형식</span>                         <span class="cm">&larr; 결과물 (형식까지!)</span>
+- 이슈 목록 (심각도: 높음/중간/낮음)</div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 6: 좋은 에이전트 정의 3원칙              -->
+<!-- =========================================== -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>좋은 에이전트 정의 3원칙</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="card card-accent">
+                    <p class="small accent bold">1. 역할을 좁게</p>
+                    <p class="small text-success">&#10003; "코드 품질과 보안 관점에서 리뷰"</p>
+                    <p class="small text-danger">&#10007; "코드를 분석하고 수정하고 테스트하고 문서화"</p>
+                </div>
+                <div class="card card-accent">
+                    <p class="small accent bold">2. 원칙을 구체적으로</p>
+                    <p class="small text-success">&#10003; "버그 가능성이 가장 높은 패턴을 우선 검사"</p>
+                    <p class="small text-danger">&#10007; "코드를 잘 분석해라"</p>
+                </div>
+                <div class="card card-accent">
+                    <p class="small accent bold">3. 출력 형식을 명시</p>
+                    <p class="small text-success">&#10003; "이슈 목록 &mdash; 심각도: 높음/중간/낮음"</p>
+                    <p class="small text-danger">&#10007; "결과를 보고해라"</p>
+                </div>
+            </div>
+            <div class="card" style="text-align:center;">
+                <p class="small">모든 걸 하는 에이전트 <span class="text-danger bold">1개</span> &lt; 전문화된 에이전트 <span class="text-success bold">3개</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 7: 에이전트 분리 기준                    -->
+<!-- =========================================== -->
+<div class="slide" data-slide="7">
+    <div class="slide-header"><h2>에이전트 분리 기준</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="two-col">
+                <div class="card" style="border-left: 3px solid var(--success);">
+                    <p class="small text-success bold">&#10003; 분리하면 좋은 경우</p>
+                    <ul class="bullet-list">
+                        <li class="small">전문 지식이 다름 (보안 vs 성능 vs 품질)</li>
+                        <li class="small">병렬 실행 가능 (FE + BE + 테스트)</li>
+                        <li class="small">컨텍스트가 분리됨 (서로 다른 파일 세트)</li>
+                        <li class="small">재사용 가능 (다른 프로젝트에서도 동일 역할)</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-left: 3px solid var(--danger);">
+                    <p class="small text-danger bold">&#10007; 분리하지 않아도 되는 경우</p>
+                    <ul class="bullet-list">
+                        <li class="small">작업이 단순하고 한 세션으로 충분</li>
+                        <li class="small">에이전트 간 통신 오버헤드 &gt; 작업 자체</li>
+                        <li class="small">컨텍스트를 공유해야 하는 밀접한 작업</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card card-accent" style="text-align:center;">
+                <p class="accent bold">3명의 집중된 팀 &gt; 5명의 산만한 팀</p>
+                <p class="small text-secondary">2-3개로 시작해서 필요하면 확장하는 게 정석</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 8: 실습 안내                            -->
+<!-- =========================================== -->
+<div class="slide" data-slide="8">
+    <div class="slide-header"><h2>실습 &mdash; 에이전트 팀 만들기</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>항목</th><th>내용</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="bold">목표</span></td><td>에이전트 3개를 정의하고, 오케스트레이션 스킬로 연결해서 팀을 구축</td></tr>
+                        <tr><td><span class="bold">만들 것</span></td><td><code class="inline-code">code-reviewer.md</code>, <code class="inline-code">test-writer.md</code>, <code class="inline-code">doc-writer.md</code> + <code class="inline-code">review-test-doc/</code> 오케스트레이션 스킬</td></tr>
+                        <tr><td><span class="bold">시작 브랜치</span></td><td><code class="inline-code">step/05-plugins</code></td></tr>
+                        <tr><td><span class="bold">시간</span></td><td>10분</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="code-block"><span class="cm"># 디렉토리 생성</span>
+<span class="fn">mkdir</span> -p .claude/agents
+<span class="fn">mkdir</span> -p .claude/skills/review-test-doc</div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 9: 실습 Part 1 — code-reviewer         -->
+<!-- =========================================== -->
+<div class="slide" data-slide="9">
+    <div class="slide-header"><h2>Part 1 &mdash; 에이전트 정의 작성</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small bold">code-reviewer.md</p>
+            <div class="code-block"><span class="cm">---</span>
+<span class="prop">name</span>: <span class="str">code-reviewer</span>
+<span class="prop">description</span>: <span class="str">코드 품질과 보안 관점에서 리뷰하는 에이전트</span>
+<span class="cm">---</span>
+<span class="fn"># code-reviewer</span>
+코드 품질과 보안 관점에서 리뷰하는 에이전트.
+
+<span class="fn">## 핵심 역할</span>
+지정된 파일의 코드를 분석하여 이슈를 보고한다.
+
+<span class="fn">## 작업 원칙</span>
+<span class="num">1.</span> 버그 가능성이 가장 높은 패턴 우선 검사
+<span class="num">2.</span> 보안 이슈 반드시 확인
+<span class="num">3.</span> CLAUDE.md 규칙 준수 여부 확인
+<span class="num">4.</span> 수정 제안은 구체적 코드와 함께
+
+<span class="fn">## 출력 형식</span>
+- 이슈 목록 (심각도: <span class="prop">높음</span>/<span class="type">중간</span>/<span class="str">낮음</span>)
+- 각 이슈: 파일명, 라인, 설명, 수정 제안</div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 10: 실습 Part 1 — test-writer          -->
+<!-- =========================================== -->
+<div class="slide" data-slide="10">
+    <div class="slide-header"><h2>Part 1 &mdash; 에이전트 정의 작성 (계속)</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small bold">test-writer.md</p>
+            <div class="code-block"><span class="cm">---</span>
+<span class="prop">name</span>: <span class="str">test-writer</span>
+<span class="prop">description</span>: <span class="str">누락된 테스트를 찾아 작성하는 에이전트</span>
+<span class="cm">---</span>
+<span class="fn"># test-writer</span>
+누락된 테스트를 찾아 작성하는 에이전트.
+
+<span class="fn">## 핵심 역할</span>
+code-reviewer가 발견한 이슈 기반으로 테스트를 작성한다.
+
+<span class="fn">## 작업 원칙</span>
+<span class="num">1.</span> 기존 테스트 패턴(__tests__/, Vitest)과 일관되게
+<span class="num">2.</span> 정상 케이스 + 엣지 케이스 모두 포함
+<span class="num">3.</span> 작성 후 vitest로 실행하여 결과 포함
+
+<span class="fn">## 출력 형식</span>
+- 새로 작성한 테스트 파일 목록
+- 테스트 실행 결과 (<span class="str">통과</span> / <span class="prop">실패</span>)</div>
+            <div class="card card-accent">
+                <p class="small"><span class="accent bold">핵심:</span> <code class="inline-code">frontmatter</code>의 name과 description이 중요 &mdash; Claude Code가 이걸 보고 에이전트를 인식</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 11: 실습 Part 2 — 에이전트 사용         -->
+<!-- =========================================== -->
+<div class="slide" data-slide="11">
+    <div class="slide-header"><h2>Part 2 &mdash; 에이전트 사용해보기</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm"># Claude에게 요청</span>
+<span class="str">"code-reviewer 에이전트로
+ src/app/api/tasks/route.ts를 리뷰해줘"</span></div>
+            <p class="small bold">예상 결과 <span class="text-secondary">(실제 출력은 다를 수 있음)</span></p>
+            <div class="ascii-diagram"><span class="prop">[심각도: 높음]</span>
+  src/app/api/tasks/route.ts:12
+  POST 핸들러에서 assigneeId가 저장되지 않음
+
+<span class="type">[심각도: 중간]</span>
+  src/app/api/tasks/route.ts:8
+  JSON 파싱 실패 시 에러 처리 없음
+
+<span class="str">[심각도: 낮음]</span>
+  src/app/api/tasks/route.ts:19
+  status 기본값 "pending"이 하드코딩됨</div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 12: 오케스트레이션                       -->
+<!-- =========================================== -->
+<div class="slide" data-slide="12">
+    <div class="slide-header"><h2>오케스트레이션 &mdash; 에이전트를 팀으로 연결하기</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram"><span class="cm">개별 에이전트</span>                 <span class="cm">오케스트레이션 스킬로 연결</span>
+  <span class="fn">code-reviewer</span>  &mdash;&mdash;&gt;
+  <span class="fn">test-writer</span>    &mdash;&mdash;&gt;  <span class="type">[오케스트레이션 스킬]</span>  &mdash;&mdash;&gt;  <span class="str">/review-test-doc</span>
+  <span class="fn">doc-writer</span>     &mdash;&mdash;&gt;            한 번의 명령으로 전부 자동</div>
+            <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="card card-accent">
+                    <p class="small accent bold">파이프라인 (순차)</p>
+                    <p class="small text-secondary">A &rarr; B &rarr; C<br>앞 단계 결과를 다음이 이어받음</p>
+                </div>
+                <div class="card card-accent">
+                    <p class="small accent bold">팬아웃 (병렬)</p>
+                    <p class="small text-secondary">A &rarr; B + C + D<br>독립 작업을 동시에 실행</p>
+                </div>
+                <div class="card card-accent">
+                    <p class="small accent bold">생성-검증 (피드백 루프)</p>
+                    <p class="small text-secondary">A &harr; B<br>기준 미달이면 재시도</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 13: Part 3 — doc-writer + 오케스트레이션 스킬 -->
+<!-- =========================================== -->
+<div class="slide" data-slide="13">
+    <div class="slide-header"><h2>Part 3 &mdash; doc-writer + 오케스트레이션 스킬 만들기</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="two-col" style="align-items: start;">
+                <div>
+                    <p class="small bold" style="margin-bottom: var(--element-gap);">.claude/agents/doc-writer.md</p>
+                    <div class="code-block"><span class="cm">---</span>
+<span class="prop">name</span>: <span class="str">doc-writer</span>
+<span class="prop">description</span>: <span class="str">변경 사항을 문서로 정리</span>
+<span class="cm">---</span>
+<span class="fn"># doc-writer</span>
+변경 사항을 문서로 정리하는 에이전트.
+
+<span class="fn">## 핵심 역할</span>
+리뷰 결과와 코드 변경을
+PM도 읽을 수 있는 문서로 정리한다.
+
+<span class="fn">## 작업 원칙</span>
+<span class="num">1.</span> 기술 용어는 최소화
+<span class="num">2.</span> 변경 이유 &rarr; 내용 &rarr; 영향 범위 순서
+<span class="num">3.</span> docs/reviews/ 디렉토리에 저장
+
+<span class="fn">## 출력 형식</span>
+- docs/reviews/{파일명}-review.md</div>
+                </div>
+                <div>
+                    <p class="small bold" style="margin-bottom: var(--element-gap);">.claude/skills/review-test-doc/SKILL.md</p>
+                    <div class="code-block"><span class="cm">---</span>
+<span class="prop">name</span>: <span class="str">review-test-doc</span>
+<span class="prop">description</span>: <span class="str">리뷰+테스트+문서를 순차 수행</span>
+<span class="cm">---</span>
+<span class="fn"># Review-Test-Doc</span>
+
+<span class="fn">## Phase 1: 코드 리뷰</span>
+<span class="cm">code-reviewer.md</span>의 원칙을 따른다
+이슈 목록을 심각도별로 정리
+
+<span class="fn">## Phase 2: 테스트 작성</span>
+<span class="cm">test-writer.md</span>의 원칙을 따른다
+Phase 1 이슈 기반 테스트 작성
+<span class="kw">npx vitest run</span>으로 실행
+
+<span class="fn">## Phase 3: 문서 작성</span>
+<span class="cm">doc-writer.md</span>의 원칙을 따른다
+Phase 1+2 결과를 종합하여 문서 생성
+
+<span class="fn">## 최종 보고</span>
+이슈 수 + 테스트 결과 + 문서 경로</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- SLIDE 14: Part 4 — 팀 실행 + 성장 비교        -->
+<!-- =========================================== -->
+<div class="slide" data-slide="14">
+    <div class="slide-header"><h2>Part 4 &mdash; 팀 실행 + 성장 비교</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="code-block"><span class="cm"># 오케스트레이션 스킬 실행</span>
+<span class="fn">/review-test-doc</span> src/app/api/tasks/route.ts</div>
+            <div class="ascii-diagram"><span class="cm">예상 출력:</span>
+  <span class="fn">Phase 1</span> &mdash; <span class="prop">코드 리뷰</span>   <span class="str">&#10003; 이슈 3건 발견</span>
+  <span class="fn">Phase 2</span> &mdash; <span class="prop">테스트 작성</span>  <span class="str">&#10003; 테스트 5개 작성, 전부 통과</span>
+  <span class="fn">Phase 3</span> &mdash; <span class="prop">문서 작성</span>   <span class="str">&#10003; CHANGELOG 업데이트 완료</span></div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th></th><th>섹션 4 &mdash; /review</th><th>섹션 7 &mdash; /review-test-doc</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="bold">범위</span></td><td>코드 리뷰만</td><td>리뷰 + 테스트 + 문서</td></tr>
+                        <tr><td><span class="bold">에이전트</span></td><td>없음 (프롬프트)</td><td>전문 에이전트 3개</td></tr>
+                        <tr><td><span class="bold">자동화</span></td><td>수동 실행</td><td>오케스트레이션 스킬이 순차 조율</td></tr>
+                        <tr><td><span class="bold">품질</span></td><td>실행마다 편차</td><td>역할 고정으로 일관된 품질</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card card-accent" style="text-align:center;">
+                <p class="small">실행합니다. 한 번의 명령으로 리뷰, 테스트, 문서가 순서대로 만들어지는 걸 확인하세요.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>

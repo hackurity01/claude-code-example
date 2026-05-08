@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 8: 하네스 엔지니어링</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS (pre, .code-block, .ascii-diagram) */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.code-block .code-label {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-size: clamp(0.5rem, 0.7vw, 0.65rem);
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Syntax highlighting — all use CSS variables */
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+/* Inline code */
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+tr.row-highlight { background: var(--accent-glow); font-weight: 600; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- Slide 0: Title -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 08</div>
+            <h1>하네스 엔지니어링</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">하네스의 개념을 이해하고, 지금까지 만든 구성 요소들이 하나의 하네스를 이룬다는 것을 인식한다.</p>
+            <p class="small text-secondary" style="margin-top: var(--element-gap);">8분 | 하네스, Agent = Model + Harness, 환경 설계</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 1: 왜 하네스인가 -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>왜 하네스인가 — AI는 확률적이다</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent" style="text-align:center;">
+                <p style="font-size: var(--h3-size); font-weight: 600;">Claude에게 같은 요청을 세 번 하면</p>
+                <p style="font-size: var(--h3-size); font-weight: 600; color: var(--accent);">세 번 다 다른 결과가 나올 수 있다.</p>
+                <p class="text-secondary" style="margin-top: var(--element-gap);">AI는 확률적으로 동작하니까.</p>
+            </div>
+            <p class="text-secondary" style="text-align:center;">그런데 오늘 우리가 한 걸 돌아보면...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 2: 오늘 우리가 한 일의 의미 -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>오늘 우리가 한 일의 의미</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent">
+                <p><code class="inline-code">CLAUDE.md</code>로 <span class="accent">"이렇게 해라"</span>를 알려줬더니</p>
+                <p class="text-secondary">→ 코드 스타일이 일관됐다</p>
+            </div>
+            <div class="card card-accent">
+                <p><code class="inline-code">Hooks</code>로 <span class="accent">"이건 차단해라"</span>를 강제했더니</p>
+                <p class="text-secondary">→ .env 수정이 불가능해졌다</p>
+            </div>
+            <div class="card card-accent">
+                <p><code class="inline-code">Skill</code>로 <span class="accent">"이 순서대로 해라"</span>를 정했더니</p>
+                <p class="text-secondary">→ 리뷰가 매번 같은 형식으로 나왔다</p>
+            </div>
+            <div class="card card-accent">
+                <p><code class="inline-code">에이전트</code>로 <span class="accent">"이 사람이 한다"</span>를 정했더니</p>
+                <p class="text-secondary">→ 역할별로 전문화된 결과가 나왔다</p>
+            </div>
+            <div class="card card-accent">
+                <p><code class="inline-code">오케스트레이션 스킬</code>로 <span class="accent">"이 팀이 이 순서로"</span>를 설계했더니</p>
+                <p class="text-secondary">→ 한 번의 명령으로 리뷰+테스트+문서가 완성됐다</p>
+            </div>
+            <p style="text-align:center; font-weight: 600; color: var(--accent);">이 모든 것이 하나로 합쳐진 게 바로 하네스입니다.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: 하네스의 정의 -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>하네스의 정의</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram" style="text-align:center; font-size: var(--body-size);">
+<span class="kw">하네스(Harness)</span>
+= 모델 바깥에서 모델의 행동을 잡아주는 모든 장치
+
+<span class="fn">Agent</span> = <span class="type">Model</span> + <span class="kw">Harness</span>
+        — Mitchell Hashimoto (HashiCorp/Terraform 창시자)</div>
+            <div class="card card-accent">
+                <p class="bold">궁극적 목표</p>
+                <p>작업의 모호함과 불확실성을 구조적으로 제한하여,<br>확률적 시스템에서 <span class="accent">일관된 결과</span>를 만드는 것.</p>
+            </div>
+            <p class="text-secondary small" style="text-align:center;">"모델의 문제가 아니라 환경의 문제다." — HumanLayer</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: 오늘 만든 것이 이미 하네스다 -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>오늘 만든 것이 이미 하네스다</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>구성요소</th><th>역할</th><th>상태</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code class="inline-code">CLAUDE.md</code></td><td>"이렇게 해라" (가이드 — 무시될 수 있음)</td><td><span class="badge badge-success">완료</span></td></tr>
+                        <tr><td><code class="inline-code">Hooks</code></td><td>"매번 자동으로 해라" (자동화 — 반드시 실행됨)</td><td><span class="badge badge-success">완료</span></td></tr>
+                        <tr><td><code class="inline-code">Skill</code></td><td>"이 순서대로 해라" (절차)</td><td><span class="badge badge-success">완료</span></td></tr>
+                        <tr><td><code class="inline-code">Agent 정의</code></td><td>"이 사람이 한다" (역할 분담)</td><td><span class="badge badge-success">완료</span></td></tr>
+                        <tr><td><code class="inline-code">오케스트레이션 스킬</code></td><td>"이 팀이 이 순서로" (협업 설계)</td><td><span class="badge badge-success">완료</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="text-align:center; font-weight: 600; color: var(--accent);">→ 이 5가지가 합쳐진 것이 하네스</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: 하네스는 열린 개념 -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>하네스는 열린 개념</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card">
+                <p><span class="accent bold">하네스 엔지니어링</span></p>
+                <p class="text-secondary">= 확립된 방법론이 아니라</p>
+                <p>= "모델의 환경을 설계해서 일관된 결과를 만든다"는 <span class="accent">접근법</span></p>
+            </div>
+            <div class="card card-accent" style="text-align:center;">
+                <p style="font-size: var(--h3-size); font-weight: 600;">Claude가 실수하면,</p>
+                <p style="font-size: var(--h3-size); font-weight: 600;">프롬프트를 고치기 전에</p>
+                <p style="font-size: var(--h3-size); font-weight: 600; color: var(--accent);">하네스에 뭘 추가할 수 있는지 먼저 생각해보자.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: 핵심 정리 -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>핵심 정리</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent" style="text-align:center;">
+                <p style="font-size: var(--h3-size); font-weight: 700; color: var(--accent);">Agent = Model + Harness</p>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>구성요소</th><th>역할</th></tr></thead>
+                    <tbody>
+                        <tr><td><code class="inline-code">CLAUDE.md</code></td><td>가이드 (무시될 수 있음)</td></tr>
+                        <tr><td><code class="inline-code">Hooks</code></td><td>자동화 (반드시 실행됨)</td></tr>
+                        <tr><td><code class="inline-code">Skill</code></td><td>절차 (이 순서대로)</td></tr>
+                        <tr><td><code class="inline-code">Agent 정의</code></td><td>역할 분담 (이 사람이)</td></tr>
+                        <tr><td><code class="inline-code">오케스트레이션 스킬</code></td><td>협업 설계 (이 팀이 이 순서로)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card" style="text-align:center;">
+                <p class="bold">Claude가 실수하면?</p>
+                <p>프롬프트 고치기 전에, <span class="accent">하네스에 뭘 추가할 수 있는지</span> 먼저 생각하자.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>

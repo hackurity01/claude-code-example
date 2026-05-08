@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 1: Claude Code Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS (pre, .code-block, .ascii-diagram) */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.code-block .code-label {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-size: clamp(0.5rem, 0.7vw, 0.65rem);
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Syntax highlighting — all use CSS variables */
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+/* Inline code */
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+tr.row-highlight { background: var(--accent-glow); font-weight: 600; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- ========== SLIDE 0: TITLE ========== -->
+<!-- 강사 멘트: "안녕하세요. 오늘 약 3시간 동안 Claude Code의 기초부터 하네스 엔지니어링까지 함께 다뤄보겠습니다." -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 01</div>
+            <h1>Claude Code Overview</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">Claude Code가 무엇이고 왜 강력한지 눈으로 확인한다. 전체 기능 지도를 머릿속에 갖는다.</p>
+            <p style="margin-top: var(--content-gap); font-family: var(--font-code); font-size: var(--small-size); color: var(--text-secondary);">15분 | 에이전틱 코딩, 3세대 진화, 기능 맵</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 1: LIVE DEMO ========== -->
+<!-- 강사 멘트: "먼저 질문 하나 — AI 코딩 도구를 써보신 분? Copilot, ChatGPT, Cursor 같은 도구들이죠. 오늘 보여드릴 Claude Code는 이것들과 근본적으로 다릅니다. 3분 안에 눈으로 보여드리겠습니다." -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>라이브 데모 -- "3분 버그 수정"</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="text-secondary small">TaskFlow 앱에서 "최신순 정렬"이 역순으로 동작하는 버그를 Claude Code에게 수정 요청</p>
+
+            <div class="code-block" style="position: relative;"><span class="code-label">bash</span>
+<span class="fn">git</span> clone https://github.com/hackurity01/claude-code-example.git
+<span class="fn">cd</span> claude-code-example
+<span class="fn">git</span> checkout instructor/demo
+<span class="fn">npm</span> install
+<span class="fn">claude</span></div>
+
+            <div class="card card-accent">
+                <p style="font-family: var(--font-code); font-size: var(--code-size);">src/lib/utils.ts의 sortByDate 함수에서 최신순 정렬이 역순으로 동작해.<br>문자열 비교 대신 Date 객체로 비교하도록 수정하고, 테스트를 돌려줘.</p>
+            </div>
+
+            <img src="images/section1-2.png" alt="터미널에서 Claude Code가 동작하는 모습" style="max-width: 100%; max-height: min(45vh, 380px); object-fit: contain; border-radius: 8px;">
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 2: DEMO EXPLANATION ========== -->
+<!-- 강사 멘트: "보셨죠? 제가 한 건 문제를 설명한 것뿐입니다. Claude가 혼자서 파일을 찾고, 원인을 분석하고, 수정하고, 테스트까지 돌렸습니다. 이게 에이전트입니다." -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>데모 해설 -- Claude가 한 일</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>단계</th><th>Claude의 동작</th><th>사람이 한 일</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="step-number">1</span></td><td>프로젝트 구조 파악</td><td>프롬프트 입력</td></tr>
+                        <tr><td><span class="step-number">2</span></td><td><code class="inline-code">src/lib/utils.ts</code> 찾아서 읽기</td><td class="text-secondary">(없음)</td></tr>
+                        <tr><td><span class="step-number">3</span></td><td>버그 원인 분석 (문자열 비교)</td><td class="text-secondary">(없음)</td></tr>
+                        <tr><td><span class="step-number">4</span></td><td>Date 객체 비교로 코드 수정</td><td>Accept 클릭</td></tr>
+                        <tr><td><span class="step-number">5</span></td><td>vitest 실행 → 통과 확인</td><td class="text-secondary">(없음)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card card-accent">
+                <p><span class="accent bold">핵심:</span> 파일 탐색 → 분석 → 수정 → 검증을 <span class="accent bold">자율적으로</span> 수행</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 3: 3 GENERATIONS ========== -->
+<!-- 강사 멘트: "자동완성은 여러분이 타이핑하면 다음 단어를 예측합니다. 채팅은 질문하면 답해주지만 코드에 직접 손대진 못해요. 에이전트는 다릅니다. '이 버그 고쳐줘'라고 하면, 코드를 읽고, 파일을 열고, 수정하고, 테스트까지 직접 실행합니다." -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>AI 코딩 도구의 3세대 진화</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram">
+<span style="color: var(--code-accent);">1세대: 자동완성</span> (Copilot, 2021~)
+  → 커서 위치에서 다음 코드를 "예측"
+  → 한계: 파일 하나만 봄, 실행 불가
+
+<span style="color: var(--code-accent);">2세대: 채팅</span> (ChatGPT, 2022~)
+  → 코드를 복사해서 물어보면 답변
+  → 한계: 프로젝트 전체를 모름, 직접 수정 불가
+
+<span style="color: var(--code-accent);">3세대: 에이전트</span> (Claude Code, 2025~)
+  → 코드베이스 전체를 읽고 이해
+  → 파일을 직접 편집하고 명령을 실행
+  → 테스트, 커밋, PR까지 자동화</div>
+
+            <div class="two-col">
+                <div class="card">
+                    <p class="small text-secondary">비유로 기억하기</p>
+                    <ul class="bullet-list">
+                        <li>1세대 = <span class="accent">받아쓰기 도우미</span> (다음 단어 예측)</li>
+                        <li>2세대 = <span class="accent">옆자리 선배</span> (물어보면 답해줌)</li>
+                        <li>3세대 = <span class="accent">신입 개발자</span> (알아서 읽고, 수정, 테스트)</li>
+                    </ul>
+                </div>
+                <img src="images/section1-4.png" alt="3단계 진화 인포그래픽: 받아쓰기 도우미 → 옆자리 선배 → 신입 개발자" style="max-width: 100%; max-height: min(35vh, 300px); object-fit: contain; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 4: COMPETITIVE LANDSCAPE ========== -->
+<!-- 강사 멘트: "지금 이 3세대 경쟁이 치열합니다. Claude Code가 특별한 이유는 하네스입니다. CLAUDE.md, Hooks, Skills, 에이전트 팀 — 이것들로 모델의 행동을 구조적으로 제어할 수 있습니다. 다른 도구는 '잘 부탁해'지만, Claude Code는 '이렇게 해라'를 강제할 수 있어요." -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>Coding Agent 현황 (2026년 5월)</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>도구</th><th>세대</th><th>Context</th><th>강점</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>GitHub Copilot</td><td>2세대</td><td>제한적</td><td>Cloud Agent, Custom Agents</td></tr>
+                        <tr><td>Cursor</td><td>2.5세대</td><td>중간</td><td>병렬 에이전트, Design Mode</td></tr>
+                        <tr class="row-highlight"><td><span class="bold">Claude Code</span></td><td><span class="bold">3세대</span></td><td><span class="bold">1M</span></td><td><span class="bold">하네스, Agent Teams, Plugins</span></td></tr>
+                        <tr><td>Gemini CLI</td><td>3세대</td><td>1M</td><td>오픈소스, MCP 지원</td></tr>
+                        <tr><td>Codex CLI</td><td>3세대</td><td>제한적</td><td>플러그인 마켓, 서브에이전트</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card card-accent">
+                <p class="small"><span class="accent bold">Claude Code만의 차별점:</span> CLAUDE.md + Hooks + Skills + Agent Teams → <span class="accent">하네스 엔지니어링</span></p>
+            </div>
+
+            <p class="text-secondary small">90% 개발자가 AI 코딩 도구 사용, 41% 코드가 AI 생성 (2026)</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 5: ENVIRONMENTS ========== -->
+<!-- 강사 멘트: "개발자분들은 터미널 CLI나 VS Code를 추천드립니다. PM이나 비개발 직군분들은 Desktop App이나 Web이 편하실 겁니다. 오늘 실습은 터미널 CLI 기준입니다." -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>Claude Code 사용 환경</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>환경</th><th>대상</th><th>특징</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="row-highlight"><td><span class="bold">Terminal CLI</span></td><td>개발자</td><td><code class="inline-code">claude</code> 명령어로 모든 기능</td></tr>
+                        <tr><td>VS Code / Cursor</td><td>개발자</td><td>IDE에서 바로 사용</td></tr>
+                        <tr><td>JetBrains</td><td>개발자</td><td>IntelliJ, PyCharm, WebStorm</td></tr>
+                        <tr><td>Desktop App</td><td>PM/비개발</td><td>시각적 UI, 드래그앤드롭</td></tr>
+                        <tr><td>Web (claude.ai/code)</td><td>PM/비개발</td><td>설치 없이 브라우저에서</td></tr>
+                        <tr><td>iOS App</td><td>전체</td><td>모바일에서 모니터링</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <p class="small"><span class="accent bold">팀 협업:</span> GitHub PR/이슈에서 <code class="inline-code">@claude</code> 멘션 → 자동 코드 리뷰, 버그 수정 | Slack <code class="inline-code">@Claude</code> 멘션으로 질문/요청</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 6: PRICING ========== -->
+<!-- 강사 멘트: "가격 구조가 좀 복잡해 보이지만, 핵심은 간단합니다. 개인이면 Pro 20달러로 시작하세요. 팀이면 Team Premium. 주의할 점은 Team Standard에는 Claude Code가 포함되지 않습니다." -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>구독 플랜 & 과금 구조</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>플랜</th><th>가격</th><th>Claude Code</th><th>특징</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="row-highlight"><td><span class="bold">Pro</span></td><td>$20/월</td><td>O</td><td>기본 사용량, 입문용</td></tr>
+                        <tr><td>Max 5x</td><td>$100/월</td><td>O</td><td>Pro 대비 5배, 우선 접근</td></tr>
+                        <tr><td>Max 20x</td><td>$200/월</td><td>O</td><td>헤비 유저, 거의 무제한</td></tr>
+                        <tr><td>Team Standard</td><td>$20/석/월</td><td class="text-danger bold">X</td><td>조직 관리, 협업</td></tr>
+                        <tr><td>Team Premium</td><td>$100/석/월</td><td>O</td><td>Claude Code + Cowork</td></tr>
+                        <tr><td>Enterprise</td><td>커스텀</td><td>O</td><td>SSO, 감사 로그, 데이터 레지던시</td></tr>
+                        <tr><td>API 종량제</td><td>사용량</td><td>-</td><td>CI/CD, 자동화 용도</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card card-accent">
+                <p class="small"><span class="accent bold">개인:</span> Pro $20로 시작 → 부족하면 Max | <span class="accent bold">팀:</span> Team Premium $100/석 | <span class="text-danger bold">주의:</span> Team Standard에는 Claude Code 미포함</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 7: TOKEN & CONTEXT ========== -->
+<!-- 강사 멘트: "토큰은 다음 섹션에서 자세히 다루겠지만, 여기서 한 가지만 기억하세요. Claude의 작업 책상에는 크기 제한이 있다. 서류를 너무 많이 올리면 아래에 깔린 건 못 찾습니다." -->
+<div class="slide" data-slide="7">
+    <div class="slide-header"><h2>토큰과 컨텍스트 -- 빠르게 이해하기</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col">
+            <ul class="bullet-list">
+                <li><span class="accent bold">토큰</span> = Claude가 처리하는 정보의 단위 (대략 단어 ~ 음절 크기. 같은 내용이라도 한국어는 영어보다 토큰을 더 많이 소모)</li>
+                <li><span class="accent bold">컨텍스트 윈도우</span> = 한 번에 처리할 수 있는 토큰의 총량</li>
+                <li><span class="accent bold">비용</span> = 입력 토큰 + 출력 토큰으로 계산</li>
+            </ul>
+
+            <div class="ascii-diagram">
+모델별 컨텍스트 크기:
+  Opus 4.7 / 4.6  →  <span style="color: var(--code-accent);">1M 토큰</span> (A4 약 1,500장)
+  Sonnet 4.6      →  <span style="color: var(--code-accent-secondary);">200K 토큰</span> (A4 약 300장)
+  Haiku 4.5       →  <span style="color: var(--code-accent-secondary);">200K 토큰</span> (고속 처리)</div>
+
+            <div class="card card-accent">
+                <p><span class="accent bold">왜 중요한가:</span> 토큰이 많이 차면 → Claude가 "까먹기" 시작. 토큰 관리 = Claude를 잘 쓰는 핵심 스킬 (섹션 2에서 자세히)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========== SLIDE 8: ROADMAP ========== -->
+<!-- 강사 멘트: "방금 데모에서 최종 완성형을 보여드렸습니다. 오늘 우리는 main 브랜치에서 시작해서, 한 섹션씩 쌓아가며 저 완성형까지 만들어갑니다. 섹션 2에서 바로 첫 실습을 시작하겠습니다." -->
+<div class="slide" data-slide="8">
+    <div class="slide-header"><h2>오늘의 로드맵</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col">
+            <div class="ascii-diagram">
+<span style="color: var(--code-accent);">섹션 1</span>  Overview <span style="color: var(--code-string);">(지금 여기)</span> ───────── 데모로 "와" 모먼트
+  │
+<span style="color: var(--code-accent);">섹션 2</span>  기초 활용 ─────────────────── 프롬프팅 + Plan Mode
+  │
+<span style="color: var(--code-accent);">섹션 3</span>  CLAUDE.md, Rules ──────────── 팀 규칙 통일
+  │
+<span style="color: var(--code-accent);">섹션 4</span>  Command, MCP, Skill ────────── 확장 도구
+  │
+<span style="color: var(--code-accent);">섹션 5</span>  Hooks ─────────────────────── 자동 실행 규칙
+  │
+<span style="color: var(--code-accent);">섹션 6</span>  Plugins ───────────────────── 생태계 활용
+  │
+<span style="color: var(--code-accent);">섹션 7</span>  하네스 엔지니어링 ─────────── 에이전트 팀 설계
+  │
+<span style="color: var(--code-accent);">섹션 10</span> 마무리 ───────────────────── 정리 &amp; 액션 플랜</div>
+
+            <div class="card card-accent">
+                <p><span class="accent bold">실습 프로젝트:</span> TaskFlow (팀 업무 관리 앱, Next.js + TypeScript + Prisma)</p>
+                <p class="text-secondary small">main 브랜치에서 시작 → 섹션마다 기능 추가 → 마지막에 완성형</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>

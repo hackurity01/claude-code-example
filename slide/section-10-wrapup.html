@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 10: 마무리</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS (pre, .code-block, .ascii-diagram) */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.code-block .code-label {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-size: clamp(0.5rem, 0.7vw, 0.65rem);
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Syntax highlighting — all use CSS variables */
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+/* Inline code */
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+tr.row-highlight { background: var(--accent-glow); font-weight: 600; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- Slide 0: Title -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 10</div>
+            <h1>마무리</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">오늘의 여정을 정리하고, 내일부터 바로 실행할 액션 아이템을 갖는다</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 1: 오늘의 전체 여정 -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>오늘의 전체 여정</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="ascii-diagram" style="font-size: var(--small-size);">
+<span class="cm">main → 프롬프팅 → CLAUDE.md → Skill+MCP → Hooks → 플러그인 → 에이전트 → 하네스 → Spec Driven</span>
+
+<span class="kw">섹션 1</span>  Claude Code가 뭔지 봤다
+<span class="kw">섹션 2</span>  프롬프트 품질 = 결과 품질
+<span class="kw">섹션 3</span>  CLAUDE.md로 일관된 코드 스타일
+<span class="kw">섹션 4</span>  Skill로 반복 작업 자동화 + MCP로 외부 연결
+<span class="kw">섹션 5</span>  Hooks로 안전장치 + 자동화
+<span class="kw">섹션 6</span>  플러그인으로 토큰 절약 + 생산성
+<span class="kw">섹션 7</span>  커스텀 에이전트로 전문가 팀 구성
+<span class="kw">섹션 8</span>  에이전트 팀을 하네스로 완성
+<span class="kw">섹션 9</span>  Spec Driven으로 계획 먼저, 구현은 나중에</div>
+            <p class="small" style="text-align:center;">'빈 프로젝트' → <span class="accent bold">'Claude Code Ready 프로젝트'</span></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 2: 섹션별 핵심 한 줄 요약 -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>섹션별 핵심 한 줄 요약</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>섹션</th><th>핵심 한 줄</th><th>키워드</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="bold">1</td><td>읽고, 편집하고, 실행하는 에이전트</td><td class="accent">에이전틱 코딩</td></tr>
+                        <tr><td class="bold">2</td><td>컨텍스트는 작업 책상. <code class="inline-code">/clear</code> 습관화</td><td class="accent">프롬프팅 공식</td></tr>
+                        <tr><td class="bold">3</td><td>CLAUDE.md = 프로젝트의 기억. 200줄 이내</td><td class="accent">팀 규칙 공유</td></tr>
+                        <tr><td class="bold">4</td><td>반복 작업 → Skill, 외부 도구 → MCP</td><td class="accent">자동화</td></tr>
+                        <tr><td class="bold">5</td><td>안내문(CLAUDE.md) vs 자동문(Hooks)</td><td class="accent">강제 규칙</td></tr>
+                        <tr><td class="bold">6</td><td>플러그인 하나로 전부 설치</td><td class="accent">RTK = 토큰 절약</td></tr>
+                        <tr><td class="bold">7</td><td>역할을 나누면 품질이 올라간다</td><td class="accent">서브에이전트</td></tr>
+                        <tr><td class="bold">8</td><td>AI는 확률적이지만 환경을 잡으면 일관된다</td><td class="accent">하네스</td></tr>
+                        <tr class="row-highlight"><td class="bold">9</td><td>"바로 해" 보다 "계획 세워"가 빠르다</td><td class="accent">R.P.I</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-secondary" style="text-align:center;">하나만 기억한다면 → <span class="accent bold">"환경을 잡으면 일관된다"</span></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: 내일부터 할 일 3가지 -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>내일부터 할 일 3가지</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent">
+                <p><span class="step-number">1</span> <span class="bold">자기 프로젝트에 CLAUDE.md 만들기</span></p>
+                <p class="small text-secondary"><code class="inline-code">/init</code>으로 시작, 팀 규칙 200줄 이내로 추가</p>
+                <p class="small">효과: 즉시 코드 품질 향상</p>
+            </div>
+            <div class="card card-accent">
+                <p><span class="step-number">2</span> <span class="bold">반복 작업 하나를 Skill로 만들기</span></p>
+                <p class="small text-secondary">코드 리뷰, 커밋 메시지, 테스트 작성 중 택 1</p>
+                <p class="small">효과: 매일 10분 절약</p>
+            </div>
+            <div class="card card-accent">
+                <p><span class="step-number">3</span> <span class="bold">RTK 설치해서 토큰 아끼기</span></p>
+                <p class="small text-secondary">curl 한 줄 + <code class="inline-code">rtk init -g</code></p>
+                <p class="small">효과: 토큰 60-90% 절약</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: 토큰 절약 핵심 5선 -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>토큰 절약 핵심 5선</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>전략</th><th>효과</th><th>실습</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="bold">1</td><td><code class="inline-code">/clear</code> 습관화</td><td class="accent">최고</td><td>섹션 2</td></tr>
+                        <tr><td class="bold">2</td><td>구체적 파일 경로 지정</td><td class="accent">높음</td><td>섹션 2</td></tr>
+                        <tr><td class="bold">3</td><td>RTK 설치</td><td class="accent">최고</td><td>섹션 6</td></tr>
+                        <tr><td class="bold">4</td><td>CLAUDE.md 200줄 이하</td><td>보통</td><td>섹션 3</td></tr>
+                        <tr><td class="bold">5</td><td>서브에이전트로 위임</td><td class="accent">높음</td><td>섹션 7</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <p class="small bold">추가 팁</p>
+                <ul class="bullet-list small">
+                    <li><code class="inline-code">/compact</code> — "현재 작업 목표와 수정 파일만 유지해줘"</li>
+                    <li><code class="inline-code">.claudeignore</code> — node_modules, dist, build 제외</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: 역할별 활용 시나리오 -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>역할별 활용 시나리오</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card">
+                <p class="accent bold">PM</p>
+                <ul class="bullet-list small">
+                    <li>Plan Mode로 프로젝트 구조 탐색 (온보딩)</li>
+                    <li>에러 스크린샷 → 이슈 리포트 자동 생성</li>
+                    <li><code class="inline-code">/release-notes</code> 스킬로 릴리스 노트 자동화</li>
+                </ul>
+            </div>
+            <div class="two-col">
+                <div class="card">
+                    <p class="accent bold">FE</p>
+                    <ul class="bullet-list small">
+                        <li>컴포넌트 생성 + 반응형 디버깅</li>
+                        <li>Figma MCP로 디자인→코드 변환</li>
+                        <li>Superpowers TDD로 컴포넌트 테스트</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <p class="accent bold">BE</p>
+                    <ul class="bullet-list small">
+                        <li>API 생성 + DB 마이그레이션</li>
+                        <li>Serena MCP로 대규모 코드베이스 탐색</li>
+                        <li>보안 리뷰 하네스로 취약점 자동 검출</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: 흔한 실수 5가지 -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>흔한 실수 5가지</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card">
+                <p><span class="step-number">1</span> <span class="bold">한 세션에 모든 작업</span></p>
+                <p class="small text-secondary">→ <code class="inline-code">/clear</code>로 작업 전환, 컨텍스트 초기화</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">2</span> <span class="bold">CLAUDE.md 500줄 장편</span></p>
+                <p class="small text-secondary">→ 200줄 이하, 핵심 규칙만</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">3</span> <span class="bold">MCP 5개 설치</span></p>
+                <p class="small text-secondary">→ 2-3개 + 필요 시 추가, Tool Search 활용</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">4</span> <span class="bold">결과 검증 없이 신뢰</span></p>
+                <p class="small text-secondary">→ "테스트 포함" 프롬프트, 항상 검증</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">5</span> <span class="bold">모호한 프롬프트 반복</span></p>
+                <p class="small text-secondary">→ [파일 경로] + [구체적 증상] + [검증 방법]</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: 다음 단계 -->
+<div class="slide" data-slide="7">
+    <div class="slide-header"><h2>다음 단계 — 심화 학습 자료</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>자료</th><th>링크</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="bold">공식 문서</td><td><a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" style="color: var(--accent); text-decoration: underline;">docs.anthropic.com/en/docs/claude-code</a></td></tr>
+                        <tr><td class="bold">Superpowers</td><td><a href="https://github.com/obra/superpowers" target="_blank" style="color: var(--accent); text-decoration: underline;">github.com/obra/superpowers</a></td></tr>
+                        <tr><td class="bold">커뮤니티</td><td><a href="https://github.com/anthropics/claude-code" target="_blank" style="color: var(--accent); text-decoration: underline;">github.com/anthropics/claude-code</a></td></tr>
+                        <tr><td class="bold">RTK</td><td><a href="https://rtk-ai.app" target="_blank" style="color: var(--accent); text-decoration: underline;">rtk-ai.app</a></td></tr>
+                        <tr><td class="bold">Context7</td><td><a href="https://github.com/upstash/context7" target="_blank" style="color: var(--accent); text-decoration: underline;">github.com/upstash/context7</a></td></tr>
+                        <tr><td class="bold">Serena</td><td><a href="https://github.com/nickcopi/serena" target="_blank" style="color: var(--accent); text-decoration: underline;">github.com/nickcopi/serena</a></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-secondary" style="text-align:center;">질문은 언제든 환영합니다.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: 감사합니다 -->
+<div class="slide slide-title" data-slide="8">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <p class="text-secondary" style="font-size: var(--body-size); margin-bottom: var(--content-gap);">오늘의 키워드</p>
+            <h1 style="font-size: var(--h2-size); color: var(--accent);">"모델의 문제가 아니라 환경의 문제다."</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">AI는 확률적으로 동작한다. 하지만 환경(하네스)을 설계하면 일관된 결과를 만들 수 있다.</p>
+            <div style="margin-top: var(--content-gap);">
+                <p class="small"><span class="step-number">1</span> CLAUDE.md 만들기 &nbsp;&nbsp; <span class="step-number">2</span> 반복 작업 → Skill &nbsp;&nbsp; <span class="step-number">3</span> RTK 설치</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>

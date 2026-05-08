@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section 8: Spec Driven</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================== */
+/* VIEWPORT FITTING: MANDATORY BASE STYLES     */
+/* =========================================== */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid, .two-col {
+        grid-template-columns: 1fr;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* =========================================== */
+/* THEME VARIABLES                             */
+/* =========================================== */
+:root {
+    /* Light theme — main */
+    --bg-primary: #F7F3EE;
+    --bg-secondary: #EDE8E0;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6560;
+    --accent: #D97706;
+    --accent-secondary: #B45309;
+    --accent-glow: rgba(217,119,6,0.15);
+    --border: rgba(180,83,9,0.35);
+    --success: #15803D;
+    --warning: #D97706;
+    --danger: #DC2626;
+
+    /* Code block — One Dark Pro */
+    --code-bg: #282C34;
+    --code-text: #E8E4E0;
+    --code-accent: #FFAE50;
+    --code-accent-secondary: #FFD19A;
+    --code-keyword: #C678DD;
+    --code-string: #98C379;
+    --code-comment: #A8A8A8;
+    --code-function: #61AFEF;
+    --code-number: #D19A66;
+    --code-property: #E06C75;
+    --code-type: #E5C07B;
+    --code-operator: #56B6C2;
+
+    /* Typography */
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --title-size: clamp(2rem, 6vw, 5rem);
+    --h2-size: clamp(1.5rem, 4vw, 3rem);
+    --h3-size: clamp(1.25rem, 3vw, 2.25rem);
+    --body-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    --small-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    --code-size: clamp(0.8rem, 1.3vw, 1.05rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* =========================================== */
+/* RESET & BASE                                */
+/* =========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.slide {
+    background: var(--bg-primary);
+    background-image:
+        linear-gradient(rgba(217,119,6,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217,119,6,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* =========================================== */
+/* TYPOGRAPHY                                  */
+/* =========================================== */
+h1 { font-family: var(--font-display); font-size: var(--title-size); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+h2 { font-family: var(--font-display); font-size: var(--h2-size); font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 500; color: var(--accent); line-height: 1.3; }
+p, li { font-size: var(--body-size); line-height: 1.6; color: var(--text-primary); }
+
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.accent { color: var(--accent); font-weight: 600; }
+.bold { font-weight: 700; }
+.small { font-size: var(--small-size); }
+
+/* =========================================== */
+/* TITLE SLIDE                                 */
+/* =========================================== */
+.slide-title .slide-content { justify-content: center; align-items: center; text-align: center; }
+.slide-title h1 { color: var(--accent); }
+.section-number {
+    padding-top: clamp(2rem, 5vh, 4rem);
+    font-family: var(--font-display);
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: var(--element-gap);
+}
+.subtitle {
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-top: var(--element-gap);
+    max-width: 70ch;
+}
+.title-decoration {
+    width: clamp(40px, 8vw, 80px);
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    border-radius: 2px;
+    margin: var(--content-gap) auto;
+}
+
+/* =========================================== */
+/* SLIDE HEADER                                */
+/* =========================================== */
+.slide-header {
+    padding: clamp(0.5rem, 1.5vw, 1rem) var(--slide-padding);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* CODE BLOCKS (pre, .code-block, .ascii-diagram) */
+/* =========================================== */
+.code-block, pre, .ascii-diagram {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    line-height: 1.6;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.code-block .code-label {
+    position: absolute;
+    top: 0; right: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-size: clamp(0.5rem, 0.7vw, 0.65rem);
+    padding: 2px 10px;
+    border-radius: 0 8px 0 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Syntax highlighting — all use CSS variables */
+.kw  { color: var(--code-keyword); }
+.str { color: var(--code-string); }
+.cm  { color: var(--code-comment); font-style: italic; }
+.fn  { color: var(--code-function); }
+.num { color: var(--code-number); }
+.op  { color: var(--code-operator); }
+.type { color: var(--code-type); }
+.prop { color: var(--code-property); }
+
+/* Inline code */
+.inline-code {
+    background: var(--code-bg);
+    color: var(--code-accent);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+}
+
+/* =========================================== */
+/* TABLES                                      */
+/* =========================================== */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+thead { background: var(--bg-secondary); }
+th {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--accent);
+    padding: clamp(0.3rem, 0.8vw, 0.7rem) clamp(0.5rem, 1vw, 1rem);
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+td {
+    padding: clamp(0.25rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 1rem);
+    border-bottom: 1px solid var(--border);
+}
+tr:hover { background: var(--accent-glow); transition: background 0.2s ease; }
+tr:last-child td { border-bottom: none; }
+tr.row-highlight { background: var(--accent-glow); font-weight: 600; }
+
+/* =========================================== */
+/* CARDS                                       */
+/* =========================================== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.card-accent { border-left: 3px solid var(--accent); }
+
+/* =========================================== */
+/* IMAGE PLACEHOLDER                           */
+/* =========================================== */
+.image-placeholder {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: clamp(1rem, 2vw, 2rem);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--small-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(80px, 15vh, 200px);
+}
+
+/* =========================================== */
+/* BULLETS                                     */
+/* =========================================== */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.8vh, 0.6rem);
+    padding: 0;
+}
+.bullet-list li { position: relative; padding-left: 1.5em; }
+.bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55em;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* =========================================== */
+/* BADGES                                      */
+/* =========================================== */
+.badge {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: clamp(0.55rem, 0.8vw, 0.75rem);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.badge-accent { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--border); }
+.badge-success { background: rgba(21,128,61,0.1); color: var(--success); }
+
+/* =========================================== */
+/* LAYOUT HELPERS                              */
+/* =========================================== */
+.flex-col { display: flex; flex-direction: column; gap: var(--content-gap); }
+.flex-row { display: flex; gap: var(--content-gap); align-items: flex-start; }
+.gap-sm { gap: var(--element-gap); }
+.gap-md { gap: var(--content-gap); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+.max-w-content { max-width: min(90vw, 900px); margin: 0 auto; width: 100%; }
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    align-items: start;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: clamp(1.2rem, 2vw, 1.8rem);
+    height: clamp(1.2rem, 2vw, 1.8rem);
+    background: var(--accent);
+    color: var(--bg-primary);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.6rem, 0.9vw, 0.8rem);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================== */
+/* PROGRESS BAR                                */
+/* =========================================== */
+.progress-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--border); z-index: 1000; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); width: 0%; transition: width 0.3s ease; }
+
+/* =========================================== */
+/* NAV DOTS                                    */
+/* =========================================== */
+.nav-dots { position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; cursor: pointer; transition: all 0.25s ease; padding: 0; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transform: scale(1.3); }
+.nav-dot:hover:not(.active) { background: var(--accent-glow); }
+
+/* =========================================== */
+/* KEYBOARD HINT & SLIDE COUNTER               */
+/* =========================================== */
+.keyboard-hint { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); left: 50%; transform: translateX(-50%); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.5; z-index: 1000; pointer-events: none; }
+.slide-counter { position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem); right: clamp(0.5rem, 1.5vw, 1.5rem); font-family: var(--font-code); font-size: clamp(0.55rem, 0.8vw, 0.7rem); color: var(--text-secondary); opacity: 0.6; z-index: 1000; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">Arrow Keys / Space to navigate</div>
+
+
+<!-- Slide 0: Title -->
+<div class="slide slide-title" data-slide="0">
+    <div class="slide-content">
+        <div class="max-w-content" style="text-align:center;">
+            <div class="section-number">Section 09</div>
+            <h1>Spec Driven</h1>
+            <div class="title-decoration"></div>
+            <p class="subtitle">계획이 곧 실력이다 — 구현 전에 "완료"를 먼저 정의하라</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 1: AI 코딩의 치명적 함정 -->
+<div class="slide" data-slide="1">
+    <div class="slide-header"><h2>AI 코딩의 치명적 함정</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="two-col">
+                <div class="card">
+                    <p class="bold text-success">사람이 코딩할 때</p>
+                    <p class="small">"아 이거 아닌데" → 머릿속에서 방향 수정 → 계속</p>
+                    <p class="small text-secondary">비용: 시간 몇 분</p>
+                </div>
+                <div class="card card-accent">
+                    <p class="bold text-danger">AI에게 시킬 때</p>
+                    <p class="small">"이거 구현해줘" → 잘못된 방향으로 수십 개 파일 수정 → 컨텍스트 절반 소모 → 되돌리기 어려움</p>
+                    <p class="small text-secondary">비용: 시간 + 토큰 + 되돌리기</p>
+                </div>
+            </div>
+            <div class="card" style="text-align:center;">
+                <p class="small">한 줄 타이포 수정에 <span class="accent bold">21,000 입력 토큰</span> 소모 — "소설 한 편 분량"</p>
+                <p class="small">범위를 좁힌 프롬프트로 전환 → <span class="accent bold">토큰 30-50% 절감</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 2: 같은 철학, 다른 이름 -->
+<div class="slide" data-slide="2">
+    <div class="slide-header"><h2>같은 철학, 다른 이름</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent" style="text-align:center;">
+                <p style="font-size: var(--h3-size); font-weight: 600; color: var(--accent);">"구현하기 전에, 뭘 만들지 먼저 정의하라"</p>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>접근법</th><th>제안</th><th>핵심</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="bold">Plan First</td><td>Anthropic 공식</td><td>Plan Mode → 확인 → 구현</td></tr>
+                        <tr><td class="bold">R.P.I</td><td>HumanLayer</td><td>Research → Plan → Implement</td></tr>
+                        <tr><td class="bold">Spec Driven</td><td>Addy Osmani (Google)</td><td>명세 = 소스 오브 트루스</td></tr>
+                        <tr><td class="bold">BMAD</td><td>오픈소스</td><td>바이브 코딩의 해독제</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: R.P.I — 3단계 워크플로우 -->
+<div class="slide" data-slide="3">
+    <div class="slide-header"><h2>R.P.I — 3단계 워크플로우</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent">
+                <p><span class="step-number">1</span> <span class="bold">Research</span> (조사)</p>
+                <p class="small text-secondary">기존 코드 읽기, 관련 파일 파악 — 사실(Fact) 기반 컨텍스트 수집</p>
+            </div>
+            <div class="card card-accent">
+                <p><span class="step-number">2</span> <span class="bold">Plan</span> (계획)</p>
+                <p class="small text-secondary">뭘 바꿀지, 어떤 순서로, 완료 조건은 뭔지 — 인간이 검토 후 승인</p>
+            </div>
+            <div class="card card-accent">
+                <p><span class="step-number">3</span> <span class="bold">Implement</span> (구현)</p>
+                <p class="small text-secondary">승인된 계획을 기계적으로 실행 — 각 체크포인트마다 테스트/빌드 검증</p>
+            </div>
+            <p class="small text-secondary" style="text-align:center;">각 단계는 별도 컨텍스트에서 실행 (조사 → <code class="inline-code">/clear</code> → 계획 → <code class="inline-code">/clear</code> → 구현)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: Spec Driven — 완료를 먼저 정의하라 -->
+<div class="slide" data-slide="4">
+    <div class="slide-header"><h2>Spec Driven — 완료를 먼저 정의하라</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <pre><span class="cm"># spec: 필터 버그 수정</span>
+
+<span class="kw">## 목표</span>
+"완료" 필터 선택 시 completed 상태의 업무만 표시
+
+<span class="kw">## 수락 기준</span>
+- [ ] 필터 "완료" → completed 상태만 표시
+- [ ] 필터 "진행 중" → in_progress 상태만 표시
+- [ ] 기존 테스트 깨지지 않음 (<span class="fn">npm test</span> 통과)
+- [ ] 새 테스트 최소 2개 추가
+
+<span class="kw">## 제약 조건</span>
+- <span class="str">TaskList.tsx</span>만 수정
+- 기존 API 변경 금지</pre>
+            <p class="small" style="text-align:center;"><span class="accent bold">Spec = 소스 오브 트루스</span>. 코드 = 파생 산출물.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: Spec의 구성 요소 -->
+<div class="slide" data-slide="5">
+    <div class="slide-header"><h2>좋은 Spec의 6가지 영역</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="two-col">
+                <div class="card">
+                    <p class="accent bold small">Addy Osmani (Google)</p>
+                    <ul class="bullet-list small">
+                        <li><span class="bold">명령어</span> — 빌드/테스트/린트 실행 방법</li>
+                        <li><span class="bold">테스트</span> — 프레임워크, 커버리지 기준</li>
+                        <li><span class="bold">프로젝트 구조</span> — 파일 위치 규칙</li>
+                        <li><span class="bold">코드 스타일</span> — 네이밍, 포매팅, 타입</li>
+                        <li><span class="bold">Git 워크플로우</span> — 브랜치, 커밋 규칙</li>
+                        <li><span class="bold">금지 사항</span> — 절대 하면 안 되는 것</li>
+                    </ul>
+                </div>
+                <div class="card card-accent">
+                    <p class="bold small">3단계 경계</p>
+                    <ul class="bullet-list small">
+                        <li><span class="text-success bold">Always do</span> — 항상 해야 하는 것</li>
+                        <li><span class="text-warning bold">Ask first</span> — 확인 후 진행</li>
+                        <li><span class="text-danger bold">Never do</span> — 절대 하면 안 되는 것</li>
+                    </ul>
+                    <p class="small text-secondary" style="margin-top: var(--element-gap);">주의: 지시가 많아질수록 준수율이 떨어짐 → 핵심만, 짧게</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: Boris의 실전 워크플로우 -->
+<div class="slide" data-slide="6">
+    <div class="slide-header"><h2>Boris의 실전 워크플로우</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <p class="small text-secondary">Boris Cherny — Claude Code 창시자</p>
+            <div class="card card-accent">
+                <p><span class="step-number">1</span> <span class="bold">Explore</span> <span class="badge badge-accent">Plan Mode</span></p>
+                <p class="small text-secondary">코드베이스 구조 파악, 관련 파일 찾기</p>
+            </div>
+            <div class="card card-accent">
+                <p><span class="step-number">2</span> <span class="bold">Plan</span> <span class="badge badge-accent">Plan Mode</span></p>
+                <p class="small text-secondary">구현 계획 생성 → "스태프 엔지니어로서 이 계획을 리뷰해줘"</p>
+            </div>
+            <div class="card card-accent">
+                <p><span class="step-number">3</span> <span class="bold">Implement</span> <span class="badge badge-success">Auto-accept</span></p>
+                <p class="small text-secondary">승인된 계획 실행 → 테스트/빌드/브라우저 검증</p>
+            </div>
+            <div class="card card-accent">
+                <p><span class="step-number">4</span> <span class="bold">Commit</span></p>
+                <p class="small text-secondary">결과 확인 후 커밋</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: Plan → Review → Execute 실전 -->
+<div class="slide" data-slide="7">
+    <div class="slide-header"><h2>Plan → Review → Execute 실전</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <pre><span class="cm"># 1. Explore — Plan Mode에서 현황 파악</span>
+<span class="str">[Shift+Tab → Plan Mode]</span>
+"TaskList.tsx의 필터 로직이 어떻게 구현되어 있는지 분석해줘"
+
+<span class="cm"># 2. Plan — 수정 계획 생성</span>
+"이 필터 버그를 수정하려면 어떤 파일을 어떻게 고쳐야 해?"
+
+<span class="cm"># 3. Review — 계획 검증 (핵심!)</span>
+<span class="kw">"스태프 엔지니어 관점에서 이 계획을 리뷰해줘.
+ 빠진 엣지 케이스나 위험한 부분이 있어?"</span>
+
+<span class="cm"># 4. Execute — 승인 후 구현</span>
+<span class="str">[Shift+Tab → 일반 모드]</span>
+"위 계획대로 수정하고, npm test 돌려서 통과 확인해"</pre>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: CLAUDE.md에 Spec Driven 규칙 넣기 -->
+<div class="slide" data-slide="8">
+    <div class="slide-header"><h2>하네스에 Spec Driven 규칙 넣기</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="two-col">
+                <div class="card">
+                    <p class="accent bold small">CLAUDE.md에 규칙으로</p>
+                    <pre style="font-size: var(--small-size);">
+<span class="kw">## 작업 방식</span>
+- 구현 전에 반드시 계획 먼저
+- 3줄 이상 수정 시 계획 필수
+- "완료 조건" + "제약 조건" 포함
+
+<span class="kw">## 검증</span>
+- 구현 후 테스트 실행
+- 테스트 없으면 먼저 작성</pre>
+                </div>
+                <div class="card card-accent">
+                    <p class="accent bold small">Skill로 자동화</p>
+                    <pre style="font-size: var(--small-size);">
+<span class="cm"># /plan-and-do</span>
+
+<span class="kw">Step 1:</span> 분석
+<span class="kw">Step 2:</span> 계획 (완료/제약 조건)
+<span class="kw">Step 3:</span> 자기 리뷰
+<span class="kw">Step 4:</span> 구현
+<span class="kw">Step 5:</span> 검증</pre>
+                </div>
+            </div>
+            <p class="small text-secondary" style="text-align:center;">규칙 = "참고" (무시 가능) | Skill = "절차" (자동 실행)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 9: 실습 — Spec Driven으로 버그 수정 -->
+<div class="slide" data-slide="9">
+    <div class="slide-header"><h2>실습 — Spec Driven으로 버그 수정 (5분)</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent">
+                <p class="bold">시나리오: <code class="inline-code">sortByDate</code> 날짜 정렬 버그</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">1</span> <span class="bold">Spec 작성</span> <span class="small text-secondary">(1분)</span></p>
+                <p class="small">목표 + 수락 기준 + 제약 조건 정의</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">2</span> <span class="bold">Plan Mode에서 실행</span> <span class="small text-secondary">(2분)</span></p>
+                <p class="small">spec 기반 수정 계획 → 스태프 엔지니어 관점 자기 리뷰</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">3</span> <span class="bold">구현</span> <span class="small text-secondary">(2분)</span></p>
+                <p class="small">계획대로 수정 → <code class="inline-code">npm test</code> 통과 확인</p>
+            </div>
+            <p class="small text-secondary" style="text-align:center;">관찰: spec이 있을 때 Claude가 엉뚱한 파일을 건드리지 않는지 확인</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 10: Before/After 비교 -->
+<div class="slide" data-slide="10">
+    <div class="slide-header"><h2>Before / After 비교</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th></th><th>Spec 없이</th><th>Spec 있을 때</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="bold">입력</td><td>"날짜 버그 고쳐줘"</td><td>spec → Plan → Review → 구현</td></tr>
+                        <tr><td class="bold">수정 방식</td><td>Claude가 추측해서 수정</td><td>수락 기준 따라 수정</td></tr>
+                        <tr><td class="bold">범위</td><td>어떤 파일을 건드릴지 모름</td><td>제약 조건으로 범위 제한</td></tr>
+                        <tr><td class="bold">테스트</td><td>추가 안 할 수도</td><td>테스트 포함이 수락 기준</td></tr>
+                        <tr><td class="bold">결과</td><td class="text-danger">불안정</td><td class="accent">일관적</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card card-accent" style="text-align:center;">
+                <p><span class="accent bold">5분</span> 투자해서 spec을 쓰면, <span class="accent bold">1시간</span> 삽질을 예방할 수 있다.</p>
+                <p class="small text-secondary">계획에 2분 투자해서 리뷰를 받으면, 구현에서 30분 되돌리기를 예방할 수 있다.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 11: 핵심 정리 -->
+<div class="slide" data-slide="11">
+    <div class="slide-header"><h2>핵심 정리</h2></div>
+    <div class="slide-content">
+        <div class="max-w-content flex-col gap-sm">
+            <div class="card card-accent" style="text-align:center;">
+                <p style="font-size: var(--h3-size); font-weight: 600; color: var(--accent);">Spec Driven 3줄 요약</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">1</span> <span class="bold">구현 전에 "완료"를 정의하라</span></p>
+                <p class="small text-secondary">spec = 수락 기준 + 제약 조건</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">2</span> <span class="bold">계획을 세운 후 리뷰를 받아라</span></p>
+                <p class="small text-secondary">"스태프 엔지니어로서 이 계획 리뷰해줘"</p>
+            </div>
+            <div class="card">
+                <p><span class="step-number">3</span> <span class="bold">승인된 계획만 실행하라</span></p>
+                <p class="small text-secondary">Plan Mode → Review → Auto-accept</p>
+            </div>
+            <p class="small" style="text-align:center;">코드를 잘 짜는 게 아니라, <span class="accent bold">방향을 잘 잡는 게 실력</span>인 시대.</p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function() {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const navDotsContainer = document.getElementById('navDots');
+    const progressFill = document.getElementById('progressFill');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentSlide = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        navDotsContainer.appendChild(dot);
+    });
+
+    function updateUI() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+        progressFill.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    }
+
+    function goToSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+        updateUI();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(totalSlides - 1);
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+                updateUI();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+    updateUI();
+})();
+</script>
+
+</body>
+</html>
